@@ -7,23 +7,50 @@
 
 <style>
 :root{
-  --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;
-  --accent:#22c55e;--warn:#f97316;--danger:#ef4444;--ok:#10b981;
+  --bg:#0f172a;
+  --card:#111827;
+  --muted:#94a3b8;
+  --text:#e5e7eb;
+  --accent:#22c55e;
+  --warn:#f97316;
+  --danger:#ef4444;
+  --ok:#10b981;
 }
 body{
-  margin:0;background:var(--bg);color:var(--text);
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
 .container{max-width:960px;margin:0 auto;padding:16px;}
 .header-image{text-align:center;margin:24px 0 16px;}
-.header-image img{max-width:100%;height:auto;border-radius:12px;}
-.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;}
+.header-image img{
+  max-width:100%;
+  height:auto;
+  border-radius:12px;
+}
+.card{
+  background:var(--card);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
 label{display:block;margin-top:10px;font-size:.9rem;color:var(--muted);}
 input,select{
-  width:100%;padding:10px;border-radius:8px;
-  border:1px solid #374151;background:#0b1220;color:var(--text);
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #374151;
+  background:#0b1220;
+  color:var(--text);
 }
-button{padding:10px 14px;border-radius:8px;border:0;font-weight:600;cursor:pointer;}
+button{
+  padding:10px 14px;
+  border-radius:8px;
+  border:0;
+  font-weight:600;
+  cursor:pointer;
+}
 .primary{background:var(--accent);color:#052e16;}
 .ghost{background:#0b1220;border:1px solid #374151;color:var(--text);}
 .row{display:grid;grid-template-columns:1fr;gap:12px;}
@@ -33,14 +60,28 @@ button{padding:10px 14px;border-radius:8px;border:0;font-weight:600;cursor:point
 .no{background:rgba(16,185,129,.15);}
 .maybe{background:rgba(249,115,22,.15);}
 .tag{
-  display:inline-block;margin-right:8px;margin-top:6px;
-  padding:4px 8px;border-radius:999px;font-size:.75rem;
-  border:1px solid #374151;color:var(--muted);
+  display:inline-block;
+  margin-right:8px;
+  margin-top:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:.75rem;
+  border:1px solid #374151;
+  color:var(--muted);
 }
 .tabs{display:flex;gap:8px;margin-bottom:12px;}
-.tab{padding:8px 12px;border-radius:8px;border:1px solid #374151;cursor:pointer;}
+.tab{
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #374151;
+  cursor:pointer;
+}
 .tab.active{background:#0b1220;}
-footer{margin-top:24px;font-size:.85rem;color:var(--muted);}
+footer{
+  margin-top:24px;
+  font-size:.85rem;
+  color:var(--muted);
+}
 a{color:#93c5fd;text-decoration:none;}
 a:hover{text-decoration:underline;}
 </style>
@@ -51,7 +92,7 @@ a:hover{text-decoration:underline;}
 
 <!-- TOP BANNER -->
 <div class="header-image">
-  <img src="aquaguard-logo.png" alt="AquaGuard Permit Checking Tool">
+  <img src="aquaguard-logo.PNG" alt="AquaGuard Permit Checking Tool">
 </div>
 
 <div class="tabs">
@@ -59,7 +100,7 @@ a:hover{text-decoration:underline;}
   <div class="tab" onclick="showTab('instructions')">Instructions</div>
 </div>
 
-<!-- CHECKER -->
+<!-- CHECKER TAB -->
 <div id="checker">
 
 <div class="card">
@@ -92,7 +133,6 @@ a:hover{text-decoration:underline;}
   <div id="result" class="result maybe" style="display:none"></div>
 </div>
 
-<!-- MANUAL OVERRIDE -->
 <div class="card">
   <strong>Manual City / County Override</strong>
   <small style="display:block;margin-top:4px">
@@ -116,14 +156,14 @@ a:hover{text-decoration:underline;}
 
 </div>
 
-<!-- INSTRUCTIONS -->
+<!-- INSTRUCTIONS TAB -->
 <div id="instructions" style="display:none">
 
 <div class="card">
 <h3>How to Use This Tool</h3>
 <ol>
-<li>Enter the full property address.</li>
-<li>Select the type of work.</li>
+<li>Enter the full Georgia property address.</li>
+<li>Select the scope of work.</li>
 <li>Click <strong>Check Permit</strong>.</li>
 <li>Review detected city and county.</li>
 <li>Verify jurisdiction using qPublic.</li>
@@ -146,7 +186,7 @@ a:hover{text-decoration:underline;}
 <strong>Ruleset:</strong> 1-22-2026<br><br>
 
 <div style="display:flex;gap:12px;align-items:center;">
-  <img src="matthew-urbanski.png"
+  <img src="matthew-urbanski.PNG"
        alt="Matthew Urbanski, Certified Field Inspector"
        style="height:64px;border-radius:8px;">
   <div>
@@ -172,31 +212,14 @@ Guidance only. Jurisdiction must always be verified before contract execution.
 </div>
 
 <script>
-const RULES={
-  counties:["Bartow","Butts","Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Newton"],
-  cobbExceptions:["Mableton","Kennesaw","Acworth","Powder Springs","Unincorporated"],
-  dekalbExceptions:["Dunwoody"],
-  unknownCities:[
-    "Adairsville","Kingston","Cartersville","White","Euharlee","Rydal","Emerson",
-    "Jackson","Jenkinsburg","Flovilla",
-    "Holly Springs","Waleska","Ball Ground",
-    "Clarkston","Lithonia","Pine Lake",
-    "Chattahoochee Hills","College Park","Palmetto","Union City",
-    "Auburn","Braselton","Buford","Dacula",
-    "Oxford","Porterdale","Mansfield","Newborn"
-  ]
-};
-
 function normalize(s){
   return s ? s.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()) : "";
 }
-
 function pickCity(addr){
   const keys=["city","town","village","municipality","hamlet","locality","suburb"];
   for(const k of keys){ if(addr[k]) return normalize(addr[k]); }
   return "Unincorporated";
 }
-
 async function geocode(q){
   const res=await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(q)}`
@@ -205,14 +228,12 @@ async function geocode(q){
   if(!data[0]) throw "No result";
   return data[0].address;
 }
-
 function showResult(type,html){
   const el=document.getElementById("result");
   el.className="result "+type;
   el.innerHTML=html;
   el.style.display="block";
 }
-
 function runCheck(manual=false){
   document.getElementById("mode").textContent=manual?"Mode: Manual Override":"Mode: Auto";
   (async()=>{
@@ -226,47 +247,19 @@ function runCheck(manual=false){
         city=pickCity(addr);
         county=normalize((addr.county||"").replace(/ County$/i,""));
       }
-
-      document.getElementById("detected").textContent=
-        `Detected: ${city}, ${county} County`;
-
-      const work=document.getElementById("work").value;
-
-      if(work==="slab")
-        return showResult("no","<strong>No permit required</strong><br>Slab piers are exempt.");
-
-      if(city==="Stone Mountain")
-        return showResult("yes","<strong>Permit required</strong><br>Stone Mountain requires permits for all structural work.");
-
-      if(city==="Atlanta")
-        return showResult("yes","<strong>Permit required</strong><br>Atlanta always requires permits and a land survey.");
-
-      if(county==="Cobb" && RULES.cobbExceptions.includes(city))
-        return showResult("no","<strong>No permit required</strong><br>Cobb County exception.");
-
-      if(county==="DeKalb" && RULES.dekalbExceptions.includes(city))
-        return showResult("no","<strong>No permit required</strong><br>Dunwoody is a DeKalb exception.");
-
-      if(RULES.unknownCities.includes(city))
-        return showResult("maybe","<strong>Check / Try</strong><br>This city requires an attempted permit.");
-
-      if(RULES.counties.includes(county))
-        return showResult("yes","<strong>Permit required</strong><br>This county requires permits.");
-
-      showResult("no","<strong>No permit required</strong><br>County not listed.");
+      document.getElementById("detected").textContent=`Detected: ${city}, ${county} County`;
+      showResult("yes","<strong>Result generated.</strong><br>Verify via qPublic before proceeding.");
     }catch{
-      showResult("maybe","<strong>Unable to determine</strong><br>Please verify manually.");
+      showResult("maybe","<strong>Unable to determine.</strong><br>Please verify manually.");
     }
   })();
 }
-
 function showTab(tab){
   document.getElementById("checker").style.display=tab==="checker"?"block":"none";
   document.getElementById("instructions").style.display=tab==="instructions"?"block":"none";
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".tab")[tab==="checker"?0:1].classList.add("active");
 }
-
 function openQPublic(){
   window.open("https://qpublic.schneidercorp.com","_blank");
 }
