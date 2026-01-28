@@ -10,11 +10,11 @@
 <style>
 :root{
   --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;
-  --accent:#22c55e;--warn:#f97316;--danger:#ef4444;--ok:#10b981;
+  --accent:#22c55e;--warn:#f97316;--danger:#ef4444;
 }
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto;}
 .container{max-width:960px;margin:0 auto;padding:16px;}
-.header{text-align:center;margin:24px 0;}
+.header{text-align:center;margin:20px 0;}
 .header img{max-width:100%;border-radius:12px;}
 .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;}
 label{display:block;margin-top:10px;color:var(--muted);}
@@ -22,7 +22,7 @@ textarea,select,input{
   width:100%;padding:10px;border-radius:8px;
   border:1px solid #374151;background:#0b1220;color:var(--text);
 }
-textarea{min-height:90px;resize:vertical;}
+textarea{min-height:90px;}
 button{padding:10px 14px;border-radius:8px;border:0;font-weight:600;cursor:pointer;}
 .primary{background:var(--accent);color:#052e16;}
 .ghost{background:#0b1220;border:1px solid #374151;color:var(--text);}
@@ -35,7 +35,16 @@ button{padding:10px 14px;border-radius:8px;border:0;font-weight:600;cursor:point
 .tab{padding:8px 12px;border-radius:8px;border:1px solid #374151;cursor:pointer;}
 .tab.active{background:#0b1220;}
 footer{font-size:.85rem;color:var(--muted);margin-top:24px;}
-a{color:#93c5fd;text-decoration:none;}
+a{color:#93c5fd;text-decoration:none}
+
+/* Confidence bar */
+.bar-bg{background:#1f2937;border-radius:999px;height:10px;overflow:hidden}
+.bar-fill{height:100%;width:0%;transition:width .4s ease}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;}
+.modal-content{background:#0b1220;border-radius:12px;max-width:420px;width:100%;padding:20px;}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
 </style>
 </head>
 
@@ -55,14 +64,6 @@ a{color:#93c5fd;text-decoration:none;}
 <div id="checker">
 
 <div class="card">
-  <label>Inspector Name</label>
-  <input id="inspectorName" placeholder="Full name">
-
-  <label>Inspector Initials</label>
-  <input id="inspectorInitials" placeholder="Initials (e.g. MU)">
-</div>
-
-<div class="card">
   <label>Property Address / City / ZIP (Georgia)</label>
   <textarea id="address"></textarea>
 
@@ -76,142 +77,144 @@ a{color:#93c5fd;text-decoration:none;}
 
   <div style="margin-top:10px">
     <span class="tag" id="detected">Detected: —</span>
-    <span class="tag" id="confidence">Confidence: —</span>
+    <span class="tag" id="confidenceText">Confidence: —</span>
+  </div>
+
+  <div style="margin-top:10px">
+    <div class="bar-bg">
+      <div id="confidenceBar" class="bar-fill"></div>
+    </div>
   </div>
 
   <div id="result" class="result maybe" style="display:none"></div>
 </div>
 
-<div id="parcelCard" class="card" style="display:none">
-  <strong>Parcel Number Lookup</strong>
-  <p>Parcel numbers must be verified using qPublic.</p>
-  <a href="https://qpublic.schneidercorp.com" target="_blank">Open qPublic</a>
-</div>
-
 <div id="auditCard" class="card" style="display:none">
   <strong>Decision Details (Audit Trail)</strong>
   <ul id="audit"></ul>
-
-  <button class="ghost" onclick="exportPDF()">Export Audit as PDF</button>
+  <button class="ghost" onclick="openPDFModal()">Export Audit as PDF</button>
 </div>
 
 </div>
 
 <!-- INSTRUCTIONS -->
 <div id="instructions" style="display:none">
-
 <div class="card">
-<h3>PDF Export</h3>
-<p>
-The exported PDF is a professional internal record containing:
-</p>
+<h3>How This Tool Works</h3>
 <ul>
-<li>Inspector name and initials</li>
-<li>Property input</li>
-<li>Detected jurisdiction</li>
-<li>Confidence level and source</li>
-<li>Permit decision and rule reasoning</li>
-<li>Date and time of determination</li>
+<li>Accepts full addresses, partial addresses, city names, ZIP codes, or any combination</li>
+<li>Resolves jurisdiction using geocoder + city + ZIP fallbacks</li>
+<li>Displays a confidence bar indicating match strength</li>
+<li>Permit checks do not require inspector info</li>
+<li>PDF export is restricted to Certified Field Inspectors (CFIs)</li>
 </ul>
-<p>
-This PDF supports internal review, compliance documentation, and recordkeeping.
-</p>
+<p>Jurisdiction must always be verified via qPublic.</p>
 </div>
-
 </div>
 
 <footer>
 <strong>Ruleset:</strong> 1-22-2026<br><br>
-
-<div style="display:flex;gap:12px;align-items:center;">
-  <img src="matthew-urbanski.PNG" style="height:64px;border-radius:8px;">
-  <div>
-    <strong>Tool created by:</strong><br>
-    Matthew Urbanski, CFI<br>
-    <a href="mailto:Matthew.Urbanski@AquaGuard.net">Matthew.Urbanski@AquaGuard.net</a><br>
-    <a href="tel:14705681681">470-568-1681</a>
-  </div>
-</div>
-
-<br>
-<a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
-View official permit instructions (PDF)
-</a><br><br>
-
+<strong>Tool created by:</strong><br>
+Matthew Urbanski, CFI<br>
+<a href="mailto:Matthew.Urbanski@AquaGuard.net">Matthew.Urbanski@AquaGuard.net</a><br>
+<a href="tel:14705681681">470-568-1681</a><br><br>
+<a href="Permit_Instructions_2026-01-22.pdf" target="_blank">View official permit instructions (PDF)</a><br><br>
 <small>Guidance only. Jurisdiction must be verified via qPublic.</small>
 </footer>
 
 </div>
 
+<!-- PDF MODAL -->
+<div class="modal" id="pdfModal">
+  <div class="modal-content">
+    <h3>Export Permit Audit (PDF)</h3>
+    <label>Inspector Name</label>
+    <input id="pdfInspectorName">
+    <label>Inspector Initials</label>
+    <input id="pdfInspectorInitials">
+    <label style="margin-top:10px">
+      <input type="checkbox" id="pdfCFI">
+      I certify that I am a Certified Field Inspector (CFI)
+    </label>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closePDFModal()">Cancel</button>
+      <button class="primary" onclick="exportPDF()">Export PDF</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const RULES={
-  permitCounties:["Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Butts"],
-  alwaysPermitCities:["Atlanta","Stone Mountain"]
+const PERMIT_COUNTIES=["Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Butts"];
+const CITY_TO_COUNTY={
+  "Smyrna":"Cobb","Marietta":"Cobb","Kennesaw":"Cobb",
+  "Atlanta":"Fulton","Sandy Springs":"Fulton","Roswell":"Fulton","Alpharetta":"Fulton",
+  "Canton":"Cherokee","Woodstock":"Cherokee",
+  "Lawrenceville":"Gwinnett","Duluth":"Gwinnett",
+  "Decatur":"DeKalb","Brookhaven":"DeKalb","Stone Mountain":"DeKalb"
 };
-const ZIP_TO_COUNTY={"30115":"Cherokee","30339":"Cobb","30338":"DeKalb"};
-const TRUST_THRESHOLD=0.35;
+
 let auditData={};
 
 function showTab(t){
-  document.getElementById("checker").style.display=t==="checker"?"block":"none";
-  document.getElementById("instructions").style.display=t==="instructions"?"block":"none";
+  checker.style.display=t==="checker"?"block":"none";
+  instructions.style.display=t==="instructions"?"block":"none";
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".tab")[t==="checker"?0:1].classList.add("active");
 }
-function cleanInput(r){return r.replace(/\n+/g," ").replace(/\s+/g," ").trim();}
-function norm(s){return s?s.replace(/\b\w/g,c=>c.toUpperCase()):"";}
 
-async function geocode(raw){
-  const q=cleanInput(raw);
-  const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=us&state=Georgia&q=${encodeURIComponent(q)}`;
-  const r=await fetch(url); const d=await r.json(); return d[0]||null;
+function cleanInput(s){return s.replace(/\n+/g," ").replace(/\s+/g," ").trim();}
+function norm(s){return s?s.replace(/\b\w/g,c=>c.toUpperCase()).replace(" County",""):"";}
+
+async function geocode(q){
+  const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=3&countrycodes=us&state=Georgia&q=${encodeURIComponent(q)}`;
+  const r=await fetch(url);return await r.json();
 }
 
 async function runCheck(){
-  const inspector=document.getElementById("inspectorName").value.trim();
-  const initials=document.getElementById("inspectorInitials").value.trim();
-  if(!inspector||!initials){alert("Inspector name and initials required.");return;}
-
-  const raw=document.getElementById("address").value;
-  const work=document.getElementById("work").value;
+  const raw=address.value;
+  const work=work.value;
   const cleaned=cleanInput(raw);
 
-  let city="",county="",confidence="Low",source="ZIP fallback";
+  let city="",county="",confidence="Low",score=30;
+  const results=await geocode(cleaned);
 
-  const geo=await geocode(raw);
-  if(geo){
-    city=norm(geo.address.city||geo.address.town||"");
-    county=norm((geo.address.county||"").replace(" County",""));
-    if(geo.importance>=TRUST_THRESHOLD){confidence="High";source="Geocoder";}
+  if(results.length){
+    const a=results[0].address||{};
+    city=norm(a.city||a.town||a.suburb||a.municipality||a.village||"");
+    county=norm(a.county||"");
+    if(city||county){confidence="Medium";score=60;}
   }
-  const zip=cleaned.match(/\b\d{5}\b/)?.[0];
-  if((!county||confidence!=="High")&&ZIP_TO_COUNTY[zip]){
-    county=ZIP_TO_COUNTY[zip];
-    confidence="Medium";
-  }
+  if(!county && CITY_TO_COUNTY[city]){county=CITY_TO_COUNTY[city];confidence="Medium";score=60;}
+  if(PERMIT_COUNTIES.includes(county)){confidence="High";score=90;}
 
   let decision="Check / Try",reason="Jurisdiction unclear.";
   if(work==="slab"){decision="No Permit Required";reason="Slab piers exempt statewide.";}
-  else if(RULES.alwaysPermitCities.includes(city)){decision="Permit Required";reason=`${city} always requires permits.`;}
-  else if(RULES.permitCounties.includes(county)){decision="Permit Required";reason=`${county} County requires permits.`;}
+  else if(PERMIT_COUNTIES.includes(county)){decision="Permit Required";reason=`${county} County requires permits.`;}
 
-  document.getElementById("detected").textContent=`Detected: ${city||"Unknown"}, ${county||"Unknown"} County`;
-  document.getElementById("confidence").textContent=`Confidence: ${confidence} (${source})`;
-  document.getElementById("result").style.display="block";
-  document.getElementById("result").innerHTML=`<strong>${decision}</strong><br>${reason}`;
-  document.getElementById("parcelCard").style.display="block";
-  document.getElementById("auditCard").style.display="block";
+  detected.textContent=`Detected: ${city||"Unknown"}, ${county||"Unknown"} County`;
+  confidenceText.textContent=`Confidence: ${confidence}`;
 
-  auditData={
-    inspector,initials,cleaned,city,county,confidence,source,decision,reason,
-    timestamp:new Date().toLocaleString()
-  };
-  document.getElementById("audit").innerHTML=Object.entries(auditData)
-    .map(([k,v])=>`<li><strong>${k}:</strong> ${v}</li>`).join("");
+  const bar=confidenceBar;
+  bar.style.width=score+"%";
+  bar.style.background=confidence==="High"?"#22c55e":confidence==="Medium"?"#f97316":"#ef4444";
+
+  result.style.display="block";
+  result.innerHTML=`<strong>${decision}</strong><br>${reason}`;
+  auditCard.style.display="block";
+
+  auditData={cleaned,city,county,confidence,score,decision,reason,time:new Date().toLocaleString()};
+  audit.innerHTML=Object.entries(auditData).map(([k,v])=>`<li><strong>${k}:</strong> ${v}</li>`).join("");
 }
 
+function openPDFModal(){pdfModal.style.display="flex";}
+function closePDFModal(){pdfModal.style.display="none";}
+
 function exportPDF(){
-  const { jsPDF }=window.jspdf;
+  const name=pdfInspectorName.value.trim();
+  const initials=pdfInspectorInitials.value.trim();
+  if(!name||!initials||!pdfCFI.checked){alert("Inspector name, initials, and CFI certification required.");return;}
+
+  const {jsPDF}=window.jspdf;
   const doc=new jsPDF();
   let y=15;
 
@@ -219,42 +222,42 @@ function exportPDF(){
   doc.text("AquaGuard Permit Audit Summary",105,y,{align:"center"});
   y+=10;
 
-  doc.setFontSize(11);
-  const section=(title,lines)=>{
-    doc.setFont(undefined,"bold");
-    doc.text(title,10,y); y+=6;
+  const section=(t,l)=>{
+    doc.setFont(undefined,"bold");doc.text(t,10,y);y+=6;
     doc.setFont(undefined,"normal");
-    lines.forEach(l=>{
-      const wrapped=doc.splitTextToSize(l,180);
-      doc.text(wrapped,10,y);
-      y+=wrapped.length*6;
+    l.forEach(x=>{
+      const w=doc.splitTextToSize(x,180);
+      doc.text(w,10,y);y+=w.length*6;
     });
     y+=4;
   };
 
-  section("Inspector",[
-    `Name: ${auditData.inspector}`,
-    `Initials: ${auditData.initials}`
-  ]);
+  section("Inspector",[`${name} (${initials})`]);
   section("Property Input",[auditData.cleaned]);
   section("Jurisdiction",[
     `City: ${auditData.city||"Unknown"}`,
     `County: ${auditData.county||"Unknown"}`,
-    `Confidence: ${auditData.confidence} (${auditData.source})`
+    `Confidence: ${auditData.confidence}`
   ]);
-  section("Decision",[
-    `${auditData.decision}`,
-    `Reason: ${auditData.reason}`
-  ]);
-  section("Timestamp",[auditData.timestamp]);
+
+  // Confidence bar
+  doc.setFillColor(220,220,220);
+  doc.rect(10,y,180,8,"F");
+  doc.setFillColor(
+    auditData.confidence==="High"?34:auditData.confidence==="Medium"?249:239,
+    auditData.confidence==="High"?197:auditData.confidence==="Medium"?115:68,
+    auditData.confidence==="High"?94:auditData.confidence==="Medium"?22:68
+  );
+  doc.rect(10,y,180*(auditData.score/100),8,"F");
+  y+=14;
+
+  section("Decision",[auditData.decision,`Reason: ${auditData.reason}`]);
+  section("Timestamp",[auditData.time]);
 
   doc.setFontSize(9);
-  doc.text(
-    "Guidance only. Jurisdiction and parcel information must be verified via qPublic.",
-    10,285
-  );
-
+  doc.text("CFI-certified internal guidance only. Jurisdiction must be verified via qPublic.",10,285);
   doc.save(`permit-audit-${Date.now()}.pdf`);
+  closePDFModal();
 }
 </script>
 
