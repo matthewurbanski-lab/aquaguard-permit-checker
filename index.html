@@ -96,9 +96,19 @@ placeholder="AquaGuard Foundation Solutions, 375 Northridge Rd, Atlanta GA 30350
   </div>
 </div>
 
+<!-- qPublic -->
 <button class="secondary" style="margin-top:14px"
-onclick="openQPublic()">
+onclick="window.open('https://qpublic.schneidercorp.com','_blank')">
 Open qPublic (Parcel Verification)
+</button>
+
+<!-- RandyMajors -->
+<button class="secondary" style="margin-top:10px"
+onclick="window.open(
+  'https://www.randymajors.org/countygmap?x=-84.0945740&y=32.8370637&cx=-84.1296100&cy=34.0845450&zoom=13&state=GA&onestate=show&labels=show&counties=show',
+  '_blank'
+)">
+Open County Boundary Map (RandyMajors)
 </button>
 
 <p style="margin-top:10px">
@@ -123,7 +133,6 @@ View Official AquaGuard Permit Instructions (PDF)
 
 <!-- INSTRUCTIONS -->
 <div id="instructions" class="card hidden">
-
 <h3>How This Tool Works</h3>
 <ul>
   <li>Accepts a Georgia address, city, ZIP, or any combination.</li>
@@ -147,7 +156,6 @@ Open AquaGuard Permit Instructions (Office PDF)
 </p>
 
 <p><small>Tool Version v1.0 (Verizon)</small></p>
-
 </div>
 
 <!-- FOOTER -->
@@ -155,7 +163,7 @@ Open AquaGuard Permit Instructions (Office PDF)
 <img src="matthew-urbanski.PNG" alt="Matthew Urbanski">
 <p>
 <strong>Tool created by:</strong><br>
-Matthew Urbanski, CFI<br>
+Matthew Urbanski, Certified Field Inspector<br>
 Matthew.Urbanski@AquaGuard.net<br>
 470-568-1681
 </p>
@@ -175,7 +183,7 @@ function showTab(id,el){
   el.classList.add('active');
 }
 
-let lastDecision = {};
+let lastDecision={};
 
 function checkPermit(){
   const raw=document.getElementById("address").value.toLowerCase();
@@ -200,7 +208,8 @@ function checkPermit(){
 
   for(const c in cityMap){
     if(raw.includes(c)){
-      county=cityMap[c];confidence=90;
+      county=cityMap[c];
+      confidence=90;
       reason="City matched → County authority applied.";
       break;
     }
@@ -209,7 +218,8 @@ function checkPermit(){
   if(!county){
     const z=raw.match(/\b\d{5}\b/);
     if(z && zipMap[z[0]]){
-      county=zipMap[z[0]];confidence=60;
+      county=zipMap[z[0]];
+      confidence=60;
       reason="ZIP matched → County inferred.";
     }
   }
@@ -238,10 +248,6 @@ function checkPermit(){
   lastDecision={address:raw,service,decision:"Permit Required",county,confidence,reason};
 }
 
-function openQPublic(){
-  window.open("https://qpublic.schneidercorp.com","_blank");
-}
-
 function exportPDF(){
   const name=document.getElementById("inspName").value;
   const init=document.getElementById("inspInit").value;
@@ -256,7 +262,11 @@ function exportPDF(){
   doc.text("AquaGuard Permit Audit",20,20);
 
   doc.setFontSize(11);
-  doc.text("Inspector: "+name+" ("+init+")",20,32);
+  doc.text(
+    "Inspector: "+name+" ("+init+") – Certified Field Inspector",
+    20,
+    32
+  );
   doc.text("Generated: "+new Date().toLocaleString(),20,40);
 
   doc.line(20,44,190,44);
