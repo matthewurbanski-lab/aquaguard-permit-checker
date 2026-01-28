@@ -5,7 +5,6 @@
 <title>AquaGuard Permit Checking Tool</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -27,7 +26,7 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
 .container{
-  max-width:920px;
+  max-width:960px;
   margin:auto;
   padding:16px;
 }
@@ -42,6 +41,12 @@ img.logo{
   display:block;
   margin:0 auto 12px;
   max-width:280px;
+}
+img.creator{
+  display:block;
+  margin:10px auto 6px;
+  max-width:120px;
+  border-radius:12px;
 }
 .tabs{
   display:flex;
@@ -100,13 +105,14 @@ button.primary{
 .confbar > div{height:100%;width:0;transition:.4s}
 small{color:var(--muted)}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+footer{text-align:center}
+a{color:#93c5fd;text-decoration:none}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- LOGO (case-correct) -->
 <img src="aquaguard-logo.PNG" class="logo" alt="AquaGuard Foundation Solutions">
 
 <div class="tabs">
@@ -119,7 +125,9 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 
 <label>Property Address / City / ZIP (Georgia)</label>
 <textarea id="address" rows="3"
-placeholder="706 Springs Street Smyrna GA 30080"></textarea>
+placeholder="AquaGuard Foundation Solutions
+375 Northridge Road
+Atlanta GA 30350"></textarea>
 
 <label>Service Type</label>
 <select id="service">
@@ -151,10 +159,10 @@ placeholder="706 Springs Street Smyrna GA 30080"></textarea>
 
 <h3>Export Audit PDF</h3>
 <label>Inspector Name (CFI)</label>
-<input id="inspName" placeholder="Matthew Urbanski">
+<input id="inspName" placeholder="Mr. Mustache">
 
 <label>Inspector Initials</label>
-<input id="inspInit" placeholder="MU">
+<input id="inspInit" placeholder="MM">
 
 <button onclick="exportPDF()">Export PDF</button>
 
@@ -167,17 +175,33 @@ placeholder="706 Springs Street Smyrna GA 30080"></textarea>
 <h3>How This Tool Works</h3>
 <ul>
   <li>Paste a full address, city, ZIP, or any combination.</li>
-  <li>City detection includes suburb, locality, and neighborhood.</li>
+  <li>Displayed city reflects common/mailing usage.</li>
+  <li>Permit authority is determined by county jurisdiction.</li>
   <li>Structural services typically require permits.</li>
   <li>Slab piers are exempt statewide per AquaGuard policy.</li>
   <li>Confidence reflects data strength, not legality.</li>
-  <li>Always verify parcel data in qPublic.</li>
 </ul>
-<p><strong>Ruleset:</strong> AquaGuard Permit Instructions (1-22-2026)</p>
-<a href="Permit_Instructions_2.pdf" target="_blank">
-View official permit instructions (PDF)
-</a>
+<p>
+  <strong>Ruleset:</strong> AquaGuard Permit Instructions (1-22-2026)<br>
+  <a href="Permit_Instructions_1-22-2026.pdf" target="_blank">
+    View original permit instructions (PDF)
+  </a>
+</p>
 </div>
+
+<footer class="card">
+  <img src="matthew-urbanski.PNG" class="creator" alt="Matthew Urbanski">
+  <strong>Tool Created By</strong><br>
+  Matthew Urbanski, CFI<br>
+  <small>
+    Internal decision-support tool for AquaGuard Foundation Solutions.<br>
+    Always verify parcel jurisdiction using qPublic.
+  </small>
+  <br><br>
+  <a href="Permit_Instructions_1-22-2026.pdf" target="_blank">
+    View source permit instructions (PDF)
+  </a>
+</footer>
 
 </div>
 
@@ -194,7 +218,9 @@ const PERMIT_COUNTIES=["Cobb","Cherokee","Fulton","DeKalb","Gwinnett","Butts"];
 const ZIP_TO_COUNTY={
   "30080":"Cobb",
   "30115":"Cherokee",
-  "30339":"Fulton"
+  "30152":"Cobb",
+  "30339":"Fulton",
+  "30350":"Fulton"
 };
 
 function normalize(s){
@@ -209,6 +235,12 @@ function extractCity(addr){
   for(const k of keys){
     if(addr[k]) return normalize(addr[k]);
   }
+  return "";
+}
+
+function inferCityFromInput(input){
+  if(/kennesaw/i.test(input)) return "Kennesaw";
+  if(/acworth/i.test(input)) return "Acworth";
   return "";
 }
 
@@ -234,8 +266,17 @@ async function runCheck(){
     county=normalize(a.county);
     const zip=a.postcode;
 
+    if(!city){
+      const inferred=inferCityFromInput(raw);
+      if(inferred) city=inferred;
+    }
+
     if(!county && zip && ZIP_TO_COUNTY[zip]){
       county=ZIP_TO_COUNTY[zip];
+      confidence="Medium";score=60;
+    }
+
+    if(county){
       confidence="Medium";score=60;
     }
     if(city && county){
@@ -263,7 +304,16 @@ async function runCheck(){
       `Confidence: ${confidence}`;
     updateBar(score,confidence);
 
-    auditData={address:raw,city,county,confidence,service,decision,time:new Date().toLocaleString()};
+    auditData={
+      address:raw,
+      displayCity:city,
+      permitAuthority:county,
+      confidence,
+      service,
+      decision,
+      time:new Date().toLocaleString()
+    };
+
     document.getElementById("audit").innerHTML=
       `<small><pre>${JSON.stringify(auditData,null,2)}</pre></small>`;
 
