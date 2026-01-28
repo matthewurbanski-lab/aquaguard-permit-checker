@@ -40,7 +40,7 @@ body{
 img.logo{
   display:block;
   margin:0 auto 12px;
-  max-width:280px;
+  max-width:300px;
 }
 img.creator{
   display:block;
@@ -116,8 +116,8 @@ a{color:#93c5fd;text-decoration:none}
 <img src="aquaguard-logo.PNG" class="logo" alt="AquaGuard Foundation Solutions">
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('checker')">Checker</div>
-  <div class="tab" onclick="showTab('instructions')">Instructions</div>
+  <div class="tab active" onclick="showTab('checker', this)">Checker</div>
+  <div class="tab" onclick="showTab('instructions', this)">Instructions</div>
 </div>
 
 <!-- CHECKER -->
@@ -145,9 +145,7 @@ Atlanta GA 30350"></textarea>
   <span class="tag" id="confidenceTag">Confidence: —</span>
 </div>
 
-<div class="confbar">
-  <div id="confidenceBar"></div>
-</div>
+<div class="confbar"><div id="confidenceBar"></div></div>
 
 <div id="result" class="result hidden"></div>
 
@@ -174,11 +172,10 @@ Atlanta GA 30350"></textarea>
 <div id="instructions" class="card hidden">
 <h3>How This Tool Works</h3>
 <ul>
-  <li>Paste a full address, city, ZIP, or any combination.</li>
-  <li>Displayed city reflects common/mailing usage.</li>
-  <li>Permit authority is determined by county jurisdiction.</li>
-  <li>Structural services typically require permits.</li>
-  <li>Slab piers are exempt statewide per AquaGuard policy.</li>
+  <li>Accepts full address, city-only, ZIP-only, or mixed input.</li>
+  <li>City is displayed for clarity; county determines permit authority.</li>
+  <li>Structural services generally require permits.</li>
+  <li>Slab piers are exempt statewide.</li>
   <li>Confidence reflects data strength, not legality.</li>
 </ul>
 <p>
@@ -206,7 +203,153 @@ Atlanta GA 30350"></textarea>
 </div>
 
 <script>
-/* (No changes to logic — same as last version) */
+/* ---------------- CORE DATA ---------------- */
+
+const PERMIT_COUNTIES = ["Cobb","Cherokee","Fulton","DeKalb","Gwinnett","Butts"];
+
+const ZIP_TO_COUNTY = {
+  "30080":"Cobb",
+  "30152":"Cobb",
+  "30115":"Cherokee",
+  "30339":"Fulton",
+  "30350":"Fulton"
+};
+
+/* ---------------- UI ---------------- */
+
+function showTab(id, el){
+  document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openQPublic(){
+  window.open("https://qpublic.schneidercorp.com","_blank");
+}
+
+/* ---------------- GEOCODING ---------------- */
+
+async function geocode(query){
+  const url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q="
+    + encodeURIComponent(query);
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.length ? json[0] : null;
+}
+
+function clean(s){
+  return s ? s.replace(/ County$/i,"").trim() : "";
+}
+
+function extractCity(addr){
+  const keys=["city","town","municipality","suburb","locality","village","hamlet"];
+  for(const k of keys){
+    if(addr[k]) return clean(addr[k]);
+  }
+  return "";
+}
+
+function inferCityFromInput(text){
+  if(/kennesaw/i.test(text)) return "Kennesaw";
+  if(/smyrna/i.test(text)) return "Smyrna";
+  if(/canton/i.test(text)) return "Canton";
+  if(/atlanta/i.test(text)) return "Atlanta";
+  return "";
+}
+
+/* ---------------- MAIN LOGIC ---------------- */
+
+let auditData={};
+
+async function runCheck(){
+  const raw=document.getElementById("address").value.replace(/\s+/g," ").trim();
+  const service=document.getElementById("service").value;
+
+  let city="",county="",confidence="Low",score=30;
+
+  try{
+    const geo=await geocode(raw);
+    if(geo){
+      const a=geo.address||{};
+      city=extractCity(a) || inferCityFromInput(raw);
+      county=clean(a.county);
+      const zip=a.postcode;
+      if(!county && zip && ZIP_TO_COUNTY[zip]) county=ZIP_TO_COUNTY[zip];
+    }
+
+    if(city && county){confidence="High";score=90;}
+    else if(county){confidence="Medium";score=60;}
+
+    let decision="",msg="",type="warn";
+
+    if(service==="slab_piers"){
+      decision="No Permit Required";
+      msg="Slab piers are exempt statewide.";
+      type="ok";
+    }else if(PERMIT_COUNTIES.includes(county)){
+      decision="Permit Required";
+      msg=`${county} County requires permits for this service.`;
+      type="bad";
+    }else{
+      decision="Check / Try";
+      msg="Jurisdiction unclear. Verify via qPublic.";
+    }
+
+    document.getElementById("detected").textContent =
+      `Detected: ${city||"Unknown"}, ${county||"Unknown County"}`;
+    document.getElementById("confidenceTag").textContent =
+      `Confidence: ${confidence}`;
+    updateBar(score,confidence);
+    showResult(type,decision,msg);
+
+    auditData={
+      address:raw,
+      city,
+      county,
+      confidence,
+      service,
+      decision,
+      time:new Date().toLocaleString()
+    };
+
+    document.getElementById("audit").innerHTML =
+      `<small><pre>${JSON.stringify(auditData,null,2)}</pre></small>`;
+
+  }catch{
+    showResult("warn","Check / Try","Unable to evaluate address.");
+  }
+}
+
+function showResult(type,title,msg){
+  const r=document.getElementById("result");
+  r.className=`result ${type}`;
+  r.innerHTML=`<strong>${title}</strong><br>${msg}`;
+  r.classList.remove("hidden");
+}
+
+function updateBar(score,conf){
+  const bar=document.getElementById("confidenceBar");
+  bar.style.width=score+"%";
+  bar.style.background =
+    conf==="High"? "var(--green)" :
+    conf==="Medium"? "var(--orange)" :
+    "var(--red)";
+}
+
+/* ---------------- PDF ---------------- */
+
+function exportPDF(){
+  const name=document.getElementById("inspName").value;
+  const init=document.getElementById("inspInit").value;
+  if(!name||!init){alert("Inspector name and initials required.");return;}
+  const {jsPDF}=window.jspdf;
+  const d=new jsPDF();
+  d.text("AquaGuard Permit Audit",10,10);
+  d.text(`Inspector: ${name} (${init})`,10,20);
+  d.text(JSON.stringify(auditData,null,2),10,30);
+  d.save("permit_audit.pdf");
+}
 </script>
 
 </body>
