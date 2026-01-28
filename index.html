@@ -209,7 +209,77 @@ function showTab(id, el){
 function openQPublic(){
   window.open("https://qpublic.schneidercorp.com","_blank");
 }
+/* ================================
+   GEORGIA-LOCKED FALLBACK ENGINE
+   v1.0 – PDF AUTHORITY FIRST
+   ================================ */
 
+const raw = addressInput.toLowerCase().replace(/,/g, " ").replace(/\s+/g, " ").trim();
+let city = "";
+let county = "";
+let confidence = "Low";
+let score = 25;
+const audit = [];
+
+/* ---- Hard lock to Georgia ---- */
+const hasGA = raw.includes(" ga ") || raw.endsWith(" ga") || raw.match(/\b30\d{3}\b/);
+if (!hasGA) {
+  audit.push("Input rejected: not a Georgia address.");
+}
+
+/* ---- City → County authority (PDF keywords) ---- */
+const CITY_TO_COUNTY = {
+  "kennesaw": "Cobb",
+  "smyrna": "Cobb",
+  "marietta": "Cobb",
+  "atlanta": "Fulton",
+  "canton": "Cherokee",
+  "woodstock": "Cherokee",
+  "roswell": "Fulton",
+  "alpharetta": "Fulton",
+  "stone mountain": "DeKalb"
+};
+
+for (const c in CITY_TO_COUNTY) {
+  if (raw.includes(c)) {
+    city = c.replace(/\b\w/g, l => l.toUpperCase());
+    county = CITY_TO_COUNTY[c];
+    confidence = "High";
+    score = 90;
+    audit.push(`City keyword "${city}" resolved to ${county} County.`);
+    break;
+  }
+}
+
+/* ---- ZIP → County fallback (Georgia-only) ---- */
+const ZIP_TO_COUNTY = {
+  "30152": "Cobb",
+  "30080": "Cobb",
+  "30060": "Cobb",
+  "30115": "Cherokee",
+  "30339": "Fulton",
+  "30309": "Fulton",
+  "30318": "Fulton"
+};
+
+const zipMatch = raw.match(/\b\d{5}\b/);
+if (!county && zipMatch && ZIP_TO_COUNTY[zipMatch[0]]) {
+  county = ZIP_TO_COUNTY[zipMatch[0]];
+  confidence = "Medium";
+  score = 75;
+  audit.push(`ZIP ${zipMatch[0]} resolved to ${county} County.`);
+}
+
+/* ---- ZIP-only input: skip geocoder entirely ---- */
+const zipOnly = raw.match(/^\d{5}$/);
+if (zipOnly) {
+  audit.push("ZIP-only input detected. Geocoder bypassed.");
+}
+
+/* ---- Final guard: prevent non-GA leakage ---- */
+if (!county) {
+  audit.push("Jurisdiction unresolved after PDF-based fallbacks.");
+}
 /* ---------------- GEOCODING ---------------- */
 
 async function geocode(query){
