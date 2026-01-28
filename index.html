@@ -5,54 +5,30 @@
 <title>AquaGuard Permit Checking Tool v1.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-body {
-  margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background:#0b1220;
-  color:#e5e7eb;
-}
-.container { max-width:720px; margin:auto; padding:16px; }
-.banner img { width:100%; border-radius:14px; }
-.tabs { display:flex; gap:8px; margin-top:12px; }
-.tab {
-  flex:1; padding:10px; border-radius:12px;
-  background:#020617; border:1px solid #1f2933;
- text-align:center; cursor:pointer;
-}
-.tab.active { background:#111827; }
-.card {
-  background:#111827; border-radius:16px;
-  padding:16px; margin-top:16px;
-}
-label { color:#9ca3af; font-size:14px; }
-input, select {
-  width:100%; padding:12px; margin-top:6px; margin-bottom:12px;
-  border-radius:10px; border:1px solid #374151;
-  background:#020617; color:#fff;
-}
-button {
-  width:100%; padding:14px; border-radius:12px;
-  border:none; background:#22c55e; color:#052e16;
-  font-weight:700; cursor:pointer;
-}
-.status { margin-top:12px; padding:14px; border-radius:12px; }
-.yes { background:#064e3b; }
-.no { background:#052e16; }
-.maybe { background:#422006; }
-.confidence-bar {
-  height:8px; border-radius:8px; background:#1f2937; margin-top:8px;
-}
-.confidence-fill {
-  height:8px; border-radius:8px; background:#22c55e;
-}
-.footer {
-  margin-top:28px; text-align:center;
-  font-size:13px; color:#9ca3af;
-}
-.footer img { width:80px; border-radius:50%; margin-top:10px; }
-.hidden { display:none; }
-a { color:#60a5fa; }
+body{margin:0;font-family:system-ui;background:#0b1220;color:#e5e7eb}
+.container{max-width:760px;margin:auto;padding:16px}
+.banner img{width:100%;border-radius:14px}
+.tabs{display:flex;gap:8px;margin-top:12px}
+.tab{flex:1;padding:10px;border-radius:12px;background:#020617;border:1px solid #1f2937;text-align:center;cursor:pointer}
+.tab.active{background:#111827}
+.card{background:#111827;border-radius:16px;padding:16px;margin-top:16px}
+label{color:#9ca3af;font-size:14px}
+input,select,textarea{width:100%;padding:12px;margin-top:6px;margin-bottom:12px;border-radius:10px;border:1px solid #374151;background:#020617;color:#fff}
+button{width:100%;padding:14px;border-radius:12px;border:none;background:#22c55e;color:#052e16;font-weight:700;cursor:pointer}
+.status{margin-top:12px;padding:14px;border-radius:12px}
+.yes{background:#064e3b}
+.no{background:#052e16}
+.maybe{background:#422006}
+.confidence-bar{height:8px;border-radius:8px;background:#1f2937;margin-top:8px}
+.confidence-fill{height:8px;border-radius:8px;background:#22c55e}
+.footer{text-align:center;margin-top:28px;font-size:13px;color:#9ca3af}
+.footer img{width:88px;border-radius:50%;margin:10px auto}
+.hidden{display:none}
+a{color:#60a5fa}
+small{color:#94a3b8}
 </style>
 </head>
 
@@ -64,10 +40,11 @@ a { color:#60a5fa; }
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('checker')">Checker</div>
-  <div class="tab" onclick="showTab('instructions')">Instructions</div>
+  <div class="tab active" onclick="switchTab('checker')">Checker</div>
+  <div class="tab" onclick="switchTab('instructions')">Instructions</div>
 </div>
 
+<!-- CHECKER -->
 <div id="checker" class="card">
 <label>Property Address / City / ZIP (Georgia)</label>
 <input id="address" placeholder="250 Peachtree St NE Atlanta GA 30303">
@@ -84,14 +61,15 @@ a { color:#60a5fa; }
 
 <div id="result" class="status hidden"></div>
 
-<div class="confidence-bar hidden" id="confBar">
-  <div class="confidence-fill" id="confFill"></div>
+<div id="confWrap" class="hidden">
+  <small id="confText"></small>
+  <div class="confidence-bar">
+    <div class="confidence-fill" id="confFill"></div>
+  </div>
 </div>
 
 <button style="margin-top:12px;background:#020617;color:#e5e7eb;border:1px solid #374151"
-onclick="window.open('https://qpublic.schneidercorp.com','_blank')">
-Open qPublic
-</button>
+onclick="openQPublic()">Open qPublic</button>
 
 <p style="margin-top:10px">
 <a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
@@ -109,93 +87,130 @@ View official permit instructions (PDF)
 <input id="inspInit" placeholder="MM">
 
 <button onclick="exportPDF()">Export PDF</button>
+
+<hr style="margin:20px 0;border-color:#1f2937">
+
+<button style="background:#020617;color:#9ca3af;border:1px dashed #374151"
+onclick="toggleAdmin()">Admin Rules Editor</button>
+
+<div id="admin" class="hidden">
+<label>Permit Rules (JSON)</label>
+<textarea id="rules" rows="6"></textarea>
+<button onclick="saveRules()">Save Rules</button>
+</div>
 </div>
 
+<!-- INSTRUCTIONS -->
 <div id="instructions" class="card hidden">
-<p>
-This tool provides permit guidance based on AquaGuard Foundation Solutions
-permit rules (updated 1/22/2026).
-</p>
+<h3>How this tool works</h3>
 <ul>
-<li>Enter any Georgia address, city, or ZIP.</li>
-<li>Select the service being proposed.</li>
-<li>Results reflect internal permit policy.</li>
-<li>Always verify jurisdiction via qPublic.</li>
+<li>City match → highest confidence</li>
+<li>ZIP fallback → medium confidence</li>
+<li>No match → manual verification required</li>
+<li>Rules derived from AquaGuard permit policy PDF</li>
 </ul>
+
+<h4>Confidence Explanation</h4>
+<ul>
+<li><strong>High:</strong> City matched</li>
+<li><strong>Medium:</strong> ZIP matched</li>
+<li><strong>Low:</strong> Manual verification required</li>
+</ul>
+
+<p><small>Version v1.0 (Verizon)</small></p>
 </div>
 
 <div class="footer">
-<p><strong>Tool created by:</strong><br>
+<img src="matthew-urbanski.PNG">
+<p>
+<strong>Tool created by:</strong><br>
 Matthew Urbanski, CFI<br>
 Matthew.Urbanski@AquaGuard.net<br>
 470-568-1681
 </p>
-<img src="matthew-urbanski.PNG">
-<p>Guidance only. Jurisdiction must be verified before contract execution.</p>
+<p><small>Guidance only. Jurisdiction must be verified before contract execution.</small></p>
 </div>
 
 </div>
 
 <script>
-function showTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-  event.target.classList.add('active');
+const defaultRules={
+ cities:{kennesaw:"Cobb",smyrna:"Cobb",marietta:"Cobb",canton:"Cherokee",woodstock:"Cherokee",atlanta:"Fulton","stone mountain":"DeKalb"},
+ zips:{30152:"Cobb",30080:"Cobb",30115:"Cherokee",30303:"Fulton",30339:"Fulton"}
+};
+
+let rules=JSON.parse(localStorage.getItem("rules")||"null")||defaultRules;
+document.getElementById("rules").value=JSON.stringify(rules,null,2);
+
+function switchTab(id){
+ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+ document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ event.target.classList.add("active");
 }
 
 function checkPermit(){
-  const raw = document.getElementById("address").value.toLowerCase();
-  const service = document.getElementById("service").value;
-  const result = document.getElementById("result");
-  const bar = document.getElementById("confBar");
-  const fill = document.getElementById("confFill");
+ const raw=document.getElementById("address").value.toLowerCase();
+ const service=document.getElementById("service").value;
+ let county="",confidence=30;
 
-  const cityMap = {
-    kennesaw:"Cobb", smyrna:"Cobb", marietta:"Cobb",
-    canton:"Cherokee", woodstock:"Cherokee",
-    atlanta:"Fulton", "stone mountain":"DeKalb"
-  };
-  const zipMap = {
-    "30152":"Cobb","30080":"Cobb","30115":"Cherokee",
-    "30303":"Fulton","30309":"Fulton","30339":"Fulton"
-  };
+ for(const c in rules.cities){
+  if(raw.includes(c)){county=rules.cities[c];confidence=90}
+ }
+ if(!county){
+  const z=raw.match(/\b\d{5}\b/);
+  if(z && rules.zips[z[0]]){county=rules.zips[z[0]];confidence=60}
+ }
 
-  let county="", confidence=40;
+ const result=document.getElementById("result");
+ const confFill=document.getElementById("confFill");
+ const confWrap=document.getElementById("confWrap");
+ const confText=document.getElementById("confText");
 
-  for (let c in cityMap){
-    if (raw.includes(c)){ county=cityMap[c]; confidence=80; break; }
-  }
+ result.classList.remove("hidden");
+ confWrap.classList.remove("hidden");
+ confFill.style.width=confidence+"%";
+ confText.innerText="Confidence: "+confidence+"%";
 
-  if (!county){
-    const zip = raw.match(/\b\d{5}\b/);
-    if (zip && zipMap[zip[0]]){
-      county=zipMap[zip[0]]; confidence=60;
-    }
-  }
+ if(!county){
+  result.className="status maybe";
+  result.innerHTML="<strong>Check / Try</strong><br>Jurisdiction unclear. Verify via qPublic.";
+  return;
+ }
+ if(service==="slab"){
+  result.className="status no";
+  result.innerHTML="<strong>No Permit Required</strong><br>Slab piers are exempt.";
+  return;
+ }
+ result.className="status yes";
+ result.innerHTML="<strong>Permit Required</strong><br>"+county+" County requires permits.";
+}
 
-  result.classList.remove("hidden");
-  bar.classList.remove("hidden");
-  fill.style.width = confidence + "%";
-
-  if (!county){
-    result.className="status maybe";
-    result.innerHTML="<strong>Check / Try</strong><br>Jurisdiction unclear. Verify via qPublic.";
-    return;
-  }
-
-  if (service==="slab"){
-    result.className="status no";
-    result.innerHTML="<strong>No Permit Required</strong><br>Slab piers are exempt per policy.";
-    return;
-  }
-
-  result.className="status yes";
-  result.innerHTML="<strong>Permit Required</strong><br>"+county+" County requires permits.";
+function openQPublic(){
+ window.open("https://qpublic.schneidercorp.com","_blank");
 }
 
 function exportPDF(){
-  alert("PDF export ready for v1.1 (locked layout confirmed).");
+ const {jsPDF}=window.jspdf;
+ const doc=new jsPDF();
+ doc.text("AquaGuard Permit Audit",20,20);
+ doc.text("Address: "+document.getElementById("address").value,20,30);
+ doc.text("Service: "+document.getElementById("service").value,20,40);
+ doc.text("Inspector: "+document.getElementById("inspName").value+" ("+document.getElementById("inspInit").value+")",20,50);
+ doc.text("Generated: "+new Date().toLocaleString(),20,60);
+ doc.save("permit-audit.pdf");
+}
+
+function toggleAdmin(){
+ document.getElementById("admin").classList.toggle("hidden");
+}
+
+function saveRules(){
+ try{
+  rules=JSON.parse(document.getElementById("rules").value);
+  localStorage.setItem("rules",JSON.stringify(rules));
+  alert("Rules saved.");
+ }catch{alert("Invalid JSON")}
 }
 </script>
 
