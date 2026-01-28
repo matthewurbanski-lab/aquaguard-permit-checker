@@ -2,31 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AquaGuard Permit Checking Tool v1.0</title>
+<title>AquaGuard Permit Checking Tool</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{margin:0;font-family:system-ui;background:#0b1220;color:#e5e7eb}
-.container{max-width:760px;margin:auto;padding:16px}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#0b1220;
+  color:#e5e7eb;
+}
+.container{max-width:820px;margin:auto;padding:16px}
 .banner img{width:100%;border-radius:14px}
-.tabs{display:flex;gap:8px;margin-top:12px}
-.tab{flex:1;padding:10px;border-radius:12px;background:#020617;border:1px solid #1f2937;text-align:center;cursor:pointer}
+.tabs{display:flex;gap:10px;margin-top:14px}
+.tab{
+  flex:1;padding:10px;text-align:center;
+  border-radius:12px;background:#020617;
+  border:1px solid #1f2937;cursor:pointer
+}
 .tab.active{background:#111827}
-.card{background:#111827;border-radius:16px;padding:16px;margin-top:16px}
+.card{background:#111827;border-radius:16px;padding:18px;margin-top:16px}
 label{color:#9ca3af;font-size:14px}
-input,select,textarea{width:100%;padding:12px;margin-top:6px;margin-bottom:12px;border-radius:10px;border:1px solid #374151;background:#020617;color:#fff}
-button{width:100%;padding:14px;border-radius:12px;border:none;background:#22c55e;color:#052e16;font-weight:700;cursor:pointer}
-.status{margin-top:12px;padding:14px;border-radius:12px}
+input,select{
+  width:100%;padding:12px;margin-top:6px;margin-bottom:14px;
+  border-radius:10px;border:1px solid #374151;
+  background:#020617;color:#fff
+}
+button{
+  width:100%;padding:14px;border-radius:12px;
+  border:none;background:#22c55e;
+  color:#052e16;font-weight:700;cursor:pointer
+}
+.secondary{
+  background:#020617;color:#e5e7eb;border:1px solid #374151
+}
+.status{margin-top:14px;padding:14px;border-radius:12px}
 .yes{background:#064e3b}
 .no{background:#052e16}
 .maybe{background:#422006}
-.confidence-bar{height:8px;border-radius:8px;background:#1f2937;margin-top:8px}
-.confidence-fill{height:8px;border-radius:8px;background:#22c55e}
-.footer{text-align:center;margin-top:28px;font-size:13px;color:#9ca3af}
-.footer img{width:88px;border-radius:50%;margin:10px auto}
+.conf-wrap{margin-top:10px}
+.conf-bar{height:8px;border-radius:8px;background:#1f2937}
+.conf-fill{height:8px;border-radius:8px;background:#22c55e;width:0%}
 .hidden{display:none}
+.footer{
+  margin-top:30px;text-align:center;
+  font-size:13px;color:#9ca3af
+}
+.footer img{width:90px;border-radius:50%;margin-top:10px}
 a{color:#60a5fa}
 small{color:#94a3b8}
 </style>
@@ -35,19 +59,23 @@ small{color:#94a3b8}
 <body>
 <div class="container">
 
+<!-- Banner -->
 <div class="banner">
-  <img src="aquaguard-logo.PNG" alt="AquaGuard Permit Tool">
+  <img src="aquaguard-logo.PNG" alt="AquaGuard Permit Checking Tool">
 </div>
 
+<!-- Tabs -->
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('checker')">Checker</div>
-  <div class="tab" onclick="switchTab('instructions')">Instructions</div>
+  <div class="tab active" onclick="showTab('checker',this)">Permit Checker</div>
+  <div class="tab" onclick="showTab('instructions',this)">Instructions</div>
 </div>
 
 <!-- CHECKER -->
 <div id="checker" class="card">
-<label>Property Address / City / ZIP (Georgia)</label>
-<input id="address" placeholder="250 Peachtree St NE Atlanta GA 30303">
+
+<label>Property Address / City / ZIP (Georgia only)</label>
+<input id="address"
+placeholder="AquaGuard Foundation Solutions, 375 Northridge Rd, Atlanta GA 30350">
 
 <label>Service Type</label>
 <select id="service">
@@ -61,156 +89,197 @@ small{color:#94a3b8}
 
 <div id="result" class="status hidden"></div>
 
-<div id="confWrap" class="hidden">
-  <small id="confText"></small>
-  <div class="confidence-bar">
-    <div class="confidence-fill" id="confFill"></div>
+<div id="confidenceWrap" class="conf-wrap hidden">
+  <small id="confidenceText"></small>
+  <div class="conf-bar">
+    <div id="confidenceFill" class="conf-fill"></div>
   </div>
 </div>
 
-<button style="margin-top:12px;background:#020617;color:#e5e7eb;border:1px solid #374151"
-onclick="openQPublic()">Open qPublic</button>
+<button class="secondary" style="margin-top:14px"
+onclick="openQPublic()">
+Open qPublic (Parcel Verification)
+</button>
 
 <p style="margin-top:10px">
 <a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
-View official permit instructions (PDF)
+View Official AquaGuard Permit Instructions (PDF)
 </a>
 </p>
 
 <hr style="margin:20px 0;border-color:#1f2937">
 
-<h3>Export Audit PDF</h3>
+<h3>Export Permit Audit (PDF)</h3>
+
 <label>Inspector Name (CFI)</label>
 <input id="inspName" placeholder="Mr. Mustache">
 
 <label>Inspector Initials</label>
 <input id="inspInit" placeholder="MM">
 
-<button onclick="exportPDF()">Export PDF</button>
+<button onclick="exportPDF()">Generate PDF Audit</button>
 
-<hr style="margin:20px 0;border-color:#1f2937">
-
-<button style="background:#020617;color:#9ca3af;border:1px dashed #374151"
-onclick="toggleAdmin()">Admin Rules Editor</button>
-
-<div id="admin" class="hidden">
-<label>Permit Rules (JSON)</label>
-<textarea id="rules" rows="6"></textarea>
-<button onclick="saveRules()">Save Rules</button>
-</div>
 </div>
 
 <!-- INSTRUCTIONS -->
 <div id="instructions" class="card hidden">
-<h3>How this tool works</h3>
+
+<h3>How This Tool Works</h3>
 <ul>
-<li>City match → highest confidence</li>
-<li>ZIP fallback → medium confidence</li>
-<li>No match → manual verification required</li>
-<li>Rules derived from AquaGuard permit policy PDF</li>
+  <li>Accepts a Georgia address, city, ZIP, or any combination.</li>
+  <li>Service type is evaluated first (slab piers exempt).</li>
+  <li>Known cities map directly to their county.</li>
+  <li>ZIP codes are used as a fallback.</li>
 </ul>
 
-<h4>Confidence Explanation</h4>
+<h3>Confidence Levels</h3>
 <ul>
-<li><strong>High:</strong> City matched</li>
-<li><strong>Medium:</strong> ZIP matched</li>
-<li><strong>Low:</strong> Manual verification required</li>
+  <li><strong>High:</strong> City and county clearly identified.</li>
+  <li><strong>Medium:</strong> ZIP-based county inference.</li>
+  <li><strong>Low:</strong> Manual parcel verification required.</li>
 </ul>
 
-<p><small>Version v1.0 (Verizon)</small></p>
+<p>
+<strong>Official Reference:</strong><br>
+<a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
+Open AquaGuard Permit Instructions (Office PDF)
+</a>
+</p>
+
+<p><small>Tool Version v1.0 (Verizon)</small></p>
+
 </div>
 
+<!-- FOOTER -->
 <div class="footer">
-<img src="matthew-urbanski.PNG">
+<img src="matthew-urbanski.PNG" alt="Matthew Urbanski">
 <p>
 <strong>Tool created by:</strong><br>
 Matthew Urbanski, CFI<br>
 Matthew.Urbanski@AquaGuard.net<br>
 470-568-1681
 </p>
-<p><small>Guidance only. Jurisdiction must be verified before contract execution.</small></p>
+<p><small>
+Internal decision-support tool for AquaGuard Foundation Solutions.<br>
+Always verify parcel number and jurisdiction before contract execution.
+</small></p>
 </div>
 
 </div>
 
 <script>
-const defaultRules={
- cities:{kennesaw:"Cobb",smyrna:"Cobb",marietta:"Cobb",canton:"Cherokee",woodstock:"Cherokee",atlanta:"Fulton","stone mountain":"DeKalb"},
- zips:{30152:"Cobb",30080:"Cobb",30115:"Cherokee",30303:"Fulton",30339:"Fulton"}
-};
-
-let rules=JSON.parse(localStorage.getItem("rules")||"null")||defaultRules;
-document.getElementById("rules").value=JSON.stringify(rules,null,2);
-
-function switchTab(id){
- document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
- document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
- document.getElementById(id).classList.remove("hidden");
- event.target.classList.add("active");
+function showTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  el.classList.add('active');
 }
 
+let lastDecision = {};
+
 function checkPermit(){
- const raw=document.getElementById("address").value.toLowerCase();
- const service=document.getElementById("service").value;
- let county="",confidence=30;
+  const raw=document.getElementById("address").value.toLowerCase();
+  const service=document.getElementById("service").value;
+  const result=document.getElementById("result");
+  const confWrap=document.getElementById("confidenceWrap");
+  const confFill=document.getElementById("confidenceFill");
+  const confText=document.getElementById("confidenceText");
 
- for(const c in rules.cities){
-  if(raw.includes(c)){county=rules.cities[c];confidence=90}
- }
- if(!county){
-  const z=raw.match(/\b\d{5}\b/);
-  if(z && rules.zips[z[0]]){county=rules.zips[z[0]];confidence=60}
- }
+  const cityMap={
+    kennesaw:"Cobb",smyrna:"Cobb",marietta:"Cobb",
+    canton:"Cherokee",woodstock:"Cherokee",
+    atlanta:"Fulton","stone mountain":"DeKalb"
+  };
+  const zipMap={
+    "30152":"Cobb","30080":"Cobb",
+    "30115":"Cherokee",
+    "30350":"Fulton","30339":"Fulton"
+  };
 
- const result=document.getElementById("result");
- const confFill=document.getElementById("confFill");
- const confWrap=document.getElementById("confWrap");
- const confText=document.getElementById("confText");
+  let county="",confidence=30,reason="";
 
- result.classList.remove("hidden");
- confWrap.classList.remove("hidden");
- confFill.style.width=confidence+"%";
- confText.innerText="Confidence: "+confidence+"%";
+  for(const c in cityMap){
+    if(raw.includes(c)){
+      county=cityMap[c];confidence=90;
+      reason="City matched → County authority applied.";
+      break;
+    }
+  }
 
- if(!county){
-  result.className="status maybe";
-  result.innerHTML="<strong>Check / Try</strong><br>Jurisdiction unclear. Verify via qPublic.";
-  return;
- }
- if(service==="slab"){
-  result.className="status no";
-  result.innerHTML="<strong>No Permit Required</strong><br>Slab piers are exempt.";
-  return;
- }
- result.className="status yes";
- result.innerHTML="<strong>Permit Required</strong><br>"+county+" County requires permits.";
+  if(!county){
+    const z=raw.match(/\b\d{5}\b/);
+    if(z && zipMap[z[0]]){
+      county=zipMap[z[0]];confidence=60;
+      reason="ZIP matched → County inferred.";
+    }
+  }
+
+  result.classList.remove("hidden");
+  confWrap.classList.remove("hidden");
+  confFill.style.width=confidence+"%";
+  confText.textContent="Confidence: "+confidence+"%";
+
+  if(!county){
+    result.className="status maybe";
+    result.innerHTML="<strong>Check / Try</strong><br>Jurisdiction unclear. Verify parcel via qPublic.";
+    lastDecision={address:raw,service,decision:"Check / Try",county:"Unknown",confidence,reason};
+    return;
+  }
+
+  if(service==="slab"){
+    result.className="status no";
+    result.innerHTML="<strong>No Permit Required</strong><br>Slab piers are exempt per AquaGuard policy.";
+    lastDecision={address:raw,service,decision:"No Permit Required",county,confidence,reason:"Service exempt."};
+    return;
+  }
+
+  result.className="status yes";
+  result.innerHTML="<strong>Permit Required</strong><br>"+county+" County requires permits.";
+  lastDecision={address:raw,service,decision:"Permit Required",county,confidence,reason};
 }
 
 function openQPublic(){
- window.open("https://qpublic.schneidercorp.com","_blank");
+  window.open("https://qpublic.schneidercorp.com","_blank");
 }
 
 function exportPDF(){
- const {jsPDF}=window.jspdf;
- const doc=new jsPDF();
- doc.text("AquaGuard Permit Audit",20,20);
- doc.text("Address: "+document.getElementById("address").value,20,30);
- doc.text("Service: "+document.getElementById("service").value,20,40);
- doc.text("Inspector: "+document.getElementById("inspName").value+" ("+document.getElementById("inspInit").value+")",20,50);
- doc.text("Generated: "+new Date().toLocaleString(),20,60);
- doc.save("permit-audit.pdf");
-}
+  const name=document.getElementById("inspName").value;
+  const init=document.getElementById("inspInit").value;
+  if(!name||!init){
+    alert("Inspector name and initials are required for PDF export.");
+    return;
+  }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
 
-function toggleAdmin(){
- document.getElementById("admin").classList.toggle("hidden");
-}
+  doc.setFontSize(16);
+  doc.text("AquaGuard Permit Audit",20,20);
 
-function saveRules(){
- try{
-  rules=JSON.parse(document.getElementById("rules").value);
-  localStorage.setItem("rules",JSON.stringify(rules));
-  alert("Rules saved.");
- }catch{alert("Invalid JSON")}
+  doc.setFontSize(11);
+  doc.text("Inspector: "+name+" ("+init+")",20,32);
+  doc.text("Generated: "+new Date().toLocaleString(),20,40);
+
+  doc.line(20,44,190,44);
+
+  doc.text("Address Input:",20,54);
+  doc.text(lastDecision.address||"",20,62,{maxWidth:170});
+
+  doc.text("Service:",20,80);
+  doc.text(lastDecision.service||"",60,80);
+
+  doc.text("County:",20,90);
+  doc.text(lastDecision.county||"",60,90);
+
+  doc.text("Decision:",20,100);
+  doc.text(lastDecision.decision||"",60,100);
+
+  doc.text("Confidence:",20,110);
+  doc.text((lastDecision.confidence||"")+"%",60,110);
+
+  doc.text("Reasoning:",20,120);
+  doc.text(lastDecision.reason||"",20,128,{maxWidth:170});
+
+  doc.save("AquaGuard_Permit_Audit.pdf");
 }
 </script>
 
