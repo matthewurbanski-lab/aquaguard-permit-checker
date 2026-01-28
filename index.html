@@ -20,60 +20,67 @@ body {
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
-.container {
-  max-width:960px;
-  margin:32px auto;
-  padding:16px;
-}
+.container { max-width:960px; margin:24px auto; padding:16px; }
+header { display:flex; gap:16px; align-items:center; margin-bottom:16px; }
+header img { height:56px; }
 .card {
   background:var(--card);
   border-radius:12px;
   padding:16px;
   margin-bottom:16px;
 }
+label { display:block; margin-top:10px; font-size:.9rem; color:var(--muted); }
 input, select {
   width:100%;
   padding:10px;
-  margin-top:6px;
   border-radius:8px;
   border:1px solid #374151;
   background:#0b1220;
   color:var(--text);
 }
 button {
-  padding:12px 16px;
+  padding:10px 14px;
   border-radius:8px;
   border:0;
   font-weight:600;
   cursor:pointer;
 }
-.primary {
-  background:var(--accent);
-  color:#052e16;
+.primary { background:var(--accent); color:#052e16; }
+.ghost {
+  background:#0b1220;
+  border:1px solid #374151;
+  color:var(--text);
 }
-.result {
-  margin-top:14px;
-  padding:14px;
-  border-radius:12px;
-}
+.row { display:grid; grid-template-columns:1fr; gap:12px; }
+@media(min-width:720px){ .row{ grid-template-columns:2fr 1fr; } }
+
+.result { margin-top:14px; padding:14px; border-radius:12px; }
 .yes { background:rgba(239,68,68,.15); }
 .no { background:rgba(16,185,129,.15); }
 .maybe { background:rgba(249,115,22,.15); }
 
-header {
-  display:flex;
-  align-items:center;
-  gap:16px;
-  margin-bottom:16px;
-}
-header img {
-  height:56px;
-}
-small {
+.tag {
+  display:inline-block;
+  margin-right:8px;
+  margin-top:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:.75rem;
+  border:1px solid #374151;
   color:var(--muted);
 }
+
+.tabs { display:flex; gap:8px; margin-bottom:12px; }
+.tab {
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #374151;
+  cursor:pointer;
+}
+.tab.active { background:#0b1220; }
+
 footer {
   margin-top:24px;
   font-size:.85rem;
@@ -86,52 +93,123 @@ footer {
 <div class="container">
 
 <header>
-  <img src="aquaguard-logo.JPG" alt="AquaGuard Foundation Solutions">
+  <img src="aquaguard-logo.jpg" alt="AquaGuard Foundation Solutions">
   <div>
     <h1 style="margin:0">Permit Checker</h1>
-    <small>AquaGuard Foundation Solutions · A Groundworks Company</small>
+    <small>AquaGuard Foundation Solutions · Groundworks Company</small>
   </div>
 </header>
 
+<div class="tabs">
+  <div class="tab active" onclick="showTab('checker')">Checker</div>
+  <div class="tab" onclick="showTab('instructions')">Instructions</div>
+</div>
+
+<!-- CHECKER TAB -->
+<div id="checker">
+
 <div class="card">
   <label>Property Address (Georgia)</label>
-  <input id="address" placeholder="875 Pickens Industrial Dr NE, Marietta, GA" />
+  <input id="address" placeholder="875 Pickens Industrial Dr NE, Marietta, GA 30062" />
 
-  <label style="margin-top:10px">Work Type</label>
-  <select id="work">
-    <option value="helical">Helical Piers</option>
-    <option value="push">Push Piers</option>
-    <option value="wall">Wall Anchors</option>
-    <option value="intellijack">IntelliJacks</option>
-    <option value="beam">Supplemental Beams</option>
-    <option value="carbon">Carbon Fiber Strips</option>
-    <option value="slab">Slab Piers</option>
-  </select>
+  <div class="row">
+    <div>
+      <label>Work Type</label>
+      <select id="work">
+        <option value="helical">Helical Piers</option>
+        <option value="push">Push Piers</option>
+        <option value="wall">Wall Anchors</option>
+        <option value="intellijack">IntelliJacks</option>
+        <option value="beam">Supplemental Beams</option>
+        <option value="carbon">Carbon Fiber Strips</option>
+        <option value="slab">Slab Piers</option>
+      </select>
+    </div>
+    <div style="align-self:end">
+      <button class="primary" onclick="runCheck()">Check Permit</button>
+    </div>
+  </div>
 
-  <button class="primary" style="margin-top:14px" onclick="checkPermit()">
-    Check Permit
-  </button>
+  <!-- Debug / Detected -->
+  <div style="margin-top:10px">
+    <span class="tag" id="detected">Detected: —</span>
+    <span class="tag" id="mode">Mode: Auto</span>
+  </div>
 
   <div id="result" class="result maybe" style="display:none"></div>
+</div>
+
+<!-- Manual Override -->
+<div class="card">
+  <strong>Manual City / County Override</strong>
+  <small style="display:block;margin-top:4px">
+    Use only after verifying jurisdiction with RandyMajors and qPublic.
+  </small>
+
+  <label>City (or type Unincorporated)</label>
+  <input id="manualCity" placeholder="Marietta or Unincorporated">
+
+  <label>County</label>
+  <input id="manualCounty" placeholder="Cobb">
+
+  <button class="ghost" style="margin-top:10px" onclick="runCheck(true)">
+    Apply Manual Override
+  </button>
+</div>
+
+<div class="card">
+  <button class="ghost" onclick="openRandy()">Open RandyMajors</button>
+  <button class="ghost" onclick="openQPublic()" style="margin-left:8px">Open qPublic</button>
+</div>
+
+</div>
+
+<!-- INSTRUCTIONS TAB -->
+<div id="instructions" style="display:none">
+
+<div class="card">
+<h3>How to Use This Tool</h3>
+<ol>
+<li>Enter the <strong>full property address</strong> whenever possible.</li>
+<li>Select the <strong>type of work</strong> being performed.</li>
+<li>Click <strong>Check Permit</strong>.</li>
+<li>Review the detected city/county.</li>
+<li>If anything looks incorrect, verify with:
+  <ul>
+    <li>RandyMajors (city limits)</li>
+    <li>qPublic (tax jurisdiction)</li>
+  </ul>
+</li>
+<li>If needed, apply a <strong>manual override</strong>.</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>Important Notes</h3>
+<ul>
+<li>Slab piers are generally exempt statewide.</li>
+<li>Stone Mountain requires permits for ALL structural stabilization.</li>
+<li>Atlanta always requires permits and a land survey.</li>
+<li>Some cities are marked “Try” — a permit attempt is required.</li>
+<li>This tool provides guidance only. Jurisdiction must always be verified.</li>
+</ul>
+</div>
+
 </div>
 
 <footer>
 <strong>Ruleset:</strong> 1-22-2026<br>
 <strong>Tool created by:</strong> Matthew Urbanski, CFI<br><br>
-This tool provides internal guidance only. Jurisdictions vary and must always be verified
-using randymajors.org and qPublic before contract execution.
+Guidance only. Always verify jurisdiction using official sources before contract execution.
 </footer>
 
 </div>
 
 <script>
+/* ---------- RULES ---------- */
 const RULES = {
-  countiesRequiring: [
-    "Bartow","Butts","Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Newton"
-  ],
-  cobbExceptions: [
-    "Mableton","Kennesaw","Acworth","Powder Springs","Unincorporated"
-  ],
+  counties: ["Bartow","Butts","Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Newton"],
+  cobbExceptions: ["Mableton","Kennesaw","Acworth","Powder Springs","Unincorporated"],
   dekalbExceptions: ["Dunwoody"],
   unknownCities: [
     "Adairsville","Kingston","Cartersville","White","Euharlee","Rydal","Emerson",
@@ -144,84 +222,93 @@ const RULES = {
   ]
 };
 
-function normalize(text) {
-  return text ? text.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()) : "";
+/* ---------- HELPERS ---------- */
+function normalize(s){
+  return s ? s.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()) : "";
 }
 
-async function geocode(address) {
+function pickCity(addr){
+  const keys=["city","town","village","municipality","hamlet","locality","suburb"];
+  for(const k of keys){
+    if(addr[k]) return normalize(addr[k]);
+  }
+  return "Unincorporated";
+}
+
+async function geocode(q){
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(address)}`
+    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(q)}`
   );
   const data = await res.json();
-  if (!data[0]) throw "No result";
+  if(!data[0]) throw "No result";
   return data[0].address;
 }
 
-function showResult(type, html) {
-  const el = document.getElementById("result");
-  el.className = "result " + type;
-  el.innerHTML = html;
-  el.style.display = "block";
+/* ---------- UI ---------- */
+function showResult(type, html){
+  const el=document.getElementById("result");
+  el.className="result "+type;
+  el.innerHTML=html;
+  el.style.display="block";
 }
 
-async function checkPermit() {
-  try {
-    const addr = await geocode(document.getElementById("address").value);
-    const city = normalize(addr.city || addr.town || addr.village || "");
-    const county = normalize((addr.county || "").replace(" County",""));
-    const work = document.getElementById("work").value;
+function runCheck(manual=false){
+  document.getElementById("mode").textContent = manual ? "Mode: Manual Override" : "Mode: Auto";
 
-    if (work === "slab") {
-      return showResult("no",
-        "<strong>No permit required</strong><br>Slab piers are exempt statewide."
-      );
+  (async()=>{
+    try{
+      let city, county;
+      if(manual){
+        city = normalize(document.getElementById("manualCity").value);
+        county = normalize(document.getElementById("manualCounty").value);
+      } else {
+        const addr = await geocode(document.getElementById("address").value);
+        city = pickCity(addr);
+        county = normalize((addr.county||"").replace(/ County$/i,""));
+      }
+
+      document.getElementById("detected").textContent =
+        `Detected: ${city}, ${county} County`;
+
+      const work=document.getElementById("work").value;
+
+      if(work==="slab")
+        return showResult("no","<strong>No permit required</strong><br>Slab piers are exempt.");
+
+      if(city==="Stone Mountain")
+        return showResult("yes","<strong>Permit required</strong><br>Stone Mountain requires permits for all structural work.");
+
+      if(city==="Atlanta")
+        return showResult("yes","<strong>Permit required</strong><br>Atlanta always requires permits and a land survey.");
+
+      if(county==="Cobb" && RULES.cobbExceptions.includes(city))
+        return showResult("no","<strong>No permit required</strong><br>Cobb County exception.");
+
+      if(county==="DeKalb" && RULES.dekalbExceptions.includes(city))
+        return showResult("no","<strong>No permit required</strong><br>Dunwoody is a DeKalb exception.");
+
+      if(RULES.unknownCities.includes(city))
+        return showResult("maybe","<strong>Check / Try</strong><br>This city requires an attempted permit.");
+
+      if(RULES.counties.includes(county))
+        return showResult("yes","<strong>Permit required</strong><br>This county requires permits.");
+
+      showResult("no","<strong>No permit required</strong><br>County not listed.");
+    } catch {
+      showResult("maybe","<strong>Unable to determine</strong><br>Please verify manually.");
     }
-
-    if (city === "Stone Mountain") {
-      return showResult("yes",
-        "<strong>Permit required</strong><br>Stone Mountain requires permits for ALL structural work."
-      );
-    }
-
-    if (city === "Atlanta") {
-      return showResult("yes",
-        "<strong>Permit required</strong><br>Atlanta always requires permits. Land survey required."
-      );
-    }
-
-    if (county === "Cobb" && RULES.cobbExceptions.includes(city || "Unincorporated")) {
-      return showResult("no",
-        "<strong>No permit required</strong><br>This location is a Cobb County exception."
-      );
-    }
-
-    if (county === "DeKalb" && RULES.dekalbExceptions.includes(city)) {
-      return showResult("no",
-        "<strong>No permit required</strong><br>Dunwoody is a DeKalb exception."
-      );
-    }
-
-    if (RULES.unknownCities.includes(city)) {
-      return showResult("maybe",
-        "<strong>Check / Try</strong><br>This city is untested. Attempt to obtain a permit."
-      );
-    }
-
-    if (RULES.countiesRequiring.includes(county)) {
-      return showResult("yes",
-        "<strong>Permit required</strong><br>This county requires permits."
-      );
-    }
-
-    showResult("no",
-      "<strong>No permit required</strong><br>County not listed as permit-required."
-    );
-  } catch (e) {
-    showResult("maybe",
-      "<strong>Unable to determine</strong><br>Please verify manually."
-    );
-  }
+  })();
 }
+
+function showTab(tab){
+  document.getElementById("checker").style.display = tab==="checker"?"block":"none";
+  document.getElementById("instructions").style.display = tab==="instructions"?"block":"none";
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab")[tab==="checker"?0:1].classList.add("active");
+}
+
+function openRandy(){ window.open("https://www.randymajors.org/county-map","_blank"); }
+function openQPublic(){ window.open("https://qpublic.net","_blank"); }
 </script>
 
 </body>
