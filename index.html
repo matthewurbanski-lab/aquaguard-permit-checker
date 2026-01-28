@@ -6,86 +6,49 @@
 <title>AquaGuard Permit Checker</title>
 
 <style>
-:root {
-  --bg:#0f172a;
-  --card:#111827;
-  --muted:#94a3b8;
-  --text:#e5e7eb;
-  --accent:#22c55e;
-  --warn:#f97316;
-  --danger:#ef4444;
-  --ok:#10b981;
+:root{
+  --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;
+  --accent:#22c55e;--warn:#f97316;--danger:#ef4444;--ok:#10b981;
 }
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
+body{
+  margin:0;background:var(--bg);color:var(--text);
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
-.container { max-width:960px; margin:24px auto; padding:16px; }
-header { display:flex; gap:16px; align-items:center; margin-bottom:16px; }
-header img { height:56px; }
-.card {
-  background:var(--card);
-  border-radius:12px;
-  padding:16px;
-  margin-bottom:16px;
+.container{max-width:960px;margin:24px auto;padding:16px;}
+header{display:flex;gap:16px;align-items:center;margin-bottom:16px;}
+header img{height:56px;}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;}
+label{display:block;margin-top:10px;font-size:.9rem;color:var(--muted);}
+input,select{
+  width:100%;padding:10px;border-radius:8px;
+  border:1px solid #374151;background:#0b1220;color:var(--text);
 }
-label { display:block; margin-top:10px; font-size:.9rem; color:var(--muted); }
-input, select {
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #374151;
-  background:#0b1220;
-  color:var(--text);
+button{
+  padding:10px 14px;border-radius:8px;border:0;
+  font-weight:600;cursor:pointer;
 }
-button {
-  padding:10px 14px;
-  border-radius:8px;
-  border:0;
-  font-weight:600;
-  cursor:pointer;
+.primary{background:var(--accent);color:#052e16;}
+.ghost{background:#0b1220;border:1px solid #374151;color:var(--text);}
+.row{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:720px){.row{grid-template-columns:2fr 1fr;}}
+.result{margin-top:14px;padding:14px;border-radius:12px;}
+.yes{background:rgba(239,68,68,.15);}
+.no{background:rgba(16,185,129,.15);}
+.maybe{background:rgba(249,115,22,.15);}
+.tag{
+  display:inline-block;margin-right:8px;margin-top:6px;
+  padding:4px 8px;border-radius:999px;font-size:.75rem;
+  border:1px solid #374151;color:var(--muted);
 }
-.primary { background:var(--accent); color:#052e16; }
-.ghost {
-  background:#0b1220;
-  border:1px solid #374151;
-  color:var(--text);
+.tabs{display:flex;gap:8px;margin-bottom:12px;}
+.tab{
+  padding:8px 12px;border-radius:8px;
+  border:1px solid #374151;cursor:pointer;
 }
-.row { display:grid; grid-template-columns:1fr; gap:12px; }
-@media(min-width:720px){ .row{ grid-template-columns:2fr 1fr; } }
-
-.result { margin-top:14px; padding:14px; border-radius:12px; }
-.yes { background:rgba(239,68,68,.15); }
-.no { background:rgba(16,185,129,.15); }
-.maybe { background:rgba(249,115,22,.15); }
-
-.tag {
-  display:inline-block;
-  margin-right:8px;
-  margin-top:6px;
-  padding:4px 8px;
-  border-radius:999px;
-  font-size:.75rem;
-  border:1px solid #374151;
-  color:var(--muted);
-}
-
-.tabs { display:flex; gap:8px; margin-bottom:12px; }
-.tab {
-  padding:8px 12px;
-  border-radius:8px;
-  border:1px solid #374151;
-  cursor:pointer;
-}
-.tab.active { background:#0b1220; }
-
-footer {
-  margin-top:24px;
-  font-size:.85rem;
-  color:var(--muted);
-}
+.tab.active{background:#0b1220;}
+footer{margin-top:24px;font-size:.85rem;color:var(--muted);}
+a{color:#93c5fd;text-decoration:none;}
+a:hover{text-decoration:underline;}
 </style>
 </head>
 
@@ -96,7 +59,7 @@ footer {
   <img src="aquaguard-logo.jpg" alt="AquaGuard Foundation Solutions">
   <div>
     <h1 style="margin:0">Permit Checker</h1>
-    <small>AquaGuard Foundation Solutions · Groundworks Company</small>
+    <small>AquaGuard Foundation Solutions · A Groundworks Company</small>
   </div>
 </header>
 
@@ -105,12 +68,12 @@ footer {
   <div class="tab" onclick="showTab('instructions')">Instructions</div>
 </div>
 
-<!-- CHECKER TAB -->
+<!-- CHECKER -->
 <div id="checker">
 
 <div class="card">
   <label>Property Address (Georgia)</label>
-  <input id="address" placeholder="875 Pickens Industrial Dr NE, Marietta, GA 30062" />
+  <input id="address" placeholder="875 Pickens Industrial Dr NE, Marietta, GA 30062">
 
   <div class="row">
     <div>
@@ -130,7 +93,6 @@ footer {
     </div>
   </div>
 
-  <!-- Debug / Detected -->
   <div style="margin-top:10px">
     <span class="tag" id="detected">Detected: —</span>
     <span class="tag" id="mode">Mode: Auto</span>
@@ -139,11 +101,11 @@ footer {
   <div id="result" class="result maybe" style="display:none"></div>
 </div>
 
-<!-- Manual Override -->
+<!-- MANUAL OVERRIDE -->
 <div class="card">
   <strong>Manual City / County Override</strong>
   <small style="display:block;margin-top:4px">
-    Use only after verifying jurisdiction with RandyMajors and qPublic.
+    Use only after verifying jurisdiction via qPublic.
   </small>
 
   <label>City (or type Unincorporated)</label>
@@ -158,40 +120,42 @@ footer {
 </div>
 
 <div class="card">
-  <button class="ghost" onclick="openRandy()">Open RandyMajors</button>
-  <button class="ghost" onclick="openQPublic()" style="margin-left:8px">Open qPublic</button>
+  <button class="ghost" onclick="openQPublic()">Open qPublic</button>
 </div>
 
 </div>
 
-<!-- INSTRUCTIONS TAB -->
+<!-- INSTRUCTIONS -->
 <div id="instructions" style="display:none">
 
 <div class="card">
 <h3>How to Use This Tool</h3>
 <ol>
-<li>Enter the <strong>full property address</strong> whenever possible.</li>
-<li>Select the <strong>type of work</strong> being performed.</li>
+<li>Enter the <strong>full property address</strong>.</li>
+<li>Select the <strong>type of work</strong>.</li>
 <li>Click <strong>Check Permit</strong>.</li>
-<li>Review the detected city/county.</li>
-<li>If anything looks incorrect, verify with:
-  <ul>
-    <li>RandyMajors (city limits)</li>
-    <li>qPublic (tax jurisdiction)</li>
-  </ul>
-</li>
-<li>If needed, apply a <strong>manual override</strong>.</li>
+<li>Review the detected city and county.</li>
+<li>If anything looks incorrect, verify using qPublic.</li>
+<li>Apply a manual override only if jurisdiction is confirmed.</li>
 </ol>
+</div>
+
+<div class="card">
+<h3>Reference Document</h3>
+<p>
+  <a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
+    Permit Instructions – As of 1/22/2026 (PDF)
+  </a>
+</p>
 </div>
 
 <div class="card">
 <h3>Important Notes</h3>
 <ul>
 <li>Slab piers are generally exempt statewide.</li>
-<li>Stone Mountain requires permits for ALL structural stabilization.</li>
+<li>Stone Mountain requires permits for all structural stabilization.</li>
 <li>Atlanta always requires permits and a land survey.</li>
-<li>Some cities are marked “Try” — a permit attempt is required.</li>
-<li>This tool provides guidance only. Jurisdiction must always be verified.</li>
+<li>Some cities require an attempted permit even if timing is unknown.</li>
 </ul>
 </div>
 
@@ -199,19 +163,21 @@ footer {
 
 <footer>
 <strong>Ruleset:</strong> 1-22-2026<br>
-<strong>Tool created by:</strong> Matthew Urbanski, CFI<br><br>
-Guidance only. Always verify jurisdiction using official sources before contract execution.
+<strong>Tool created by:</strong> Matthew Urbanski, CFI<br>
+<a href="Permit_Instructions_2026-01-22.pdf" target="_blank">
+View official permit instructions (PDF)
+</a><br><br>
+Guidance only. Jurisdiction must always be verified before contract execution.
 </footer>
 
 </div>
 
 <script>
-/* ---------- RULES ---------- */
-const RULES = {
-  counties: ["Bartow","Butts","Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Newton"],
-  cobbExceptions: ["Mableton","Kennesaw","Acworth","Powder Springs","Unincorporated"],
-  dekalbExceptions: ["Dunwoody"],
-  unknownCities: [
+const RULES={
+  counties:["Bartow","Butts","Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Newton"],
+  cobbExceptions:["Mableton","Kennesaw","Acworth","Powder Springs","Unincorporated"],
+  dekalbExceptions:["Dunwoody"],
+  unknownCities:[
     "Adairsville","Kingston","Cartersville","White","Euharlee","Rydal","Emerson",
     "Jackson","Jenkinsburg","Flovilla",
     "Holly Springs","Waleska","Ball Ground",
@@ -222,30 +188,26 @@ const RULES = {
   ]
 };
 
-/* ---------- HELPERS ---------- */
 function normalize(s){
   return s ? s.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()) : "";
 }
 
 function pickCity(addr){
   const keys=["city","town","village","municipality","hamlet","locality","suburb"];
-  for(const k of keys){
-    if(addr[k]) return normalize(addr[k]);
-  }
+  for(const k of keys){ if(addr[k]) return normalize(addr[k]); }
   return "Unincorporated";
 }
 
 async function geocode(q){
-  const res = await fetch(
+  const res=await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(q)}`
   );
-  const data = await res.json();
+  const data=await res.json();
   if(!data[0]) throw "No result";
   return data[0].address;
 }
 
-/* ---------- UI ---------- */
-function showResult(type, html){
+function showResult(type,html){
   const el=document.getElementById("result");
   el.className="result "+type;
   el.innerHTML=html;
@@ -253,21 +215,20 @@ function showResult(type, html){
 }
 
 function runCheck(manual=false){
-  document.getElementById("mode").textContent = manual ? "Mode: Manual Override" : "Mode: Auto";
-
+  document.getElementById("mode").textContent=manual?"Mode: Manual Override":"Mode: Auto";
   (async()=>{
     try{
-      let city, county;
+      let city,county;
       if(manual){
-        city = normalize(document.getElementById("manualCity").value);
-        county = normalize(document.getElementById("manualCounty").value);
-      } else {
-        const addr = await geocode(document.getElementById("address").value);
-        city = pickCity(addr);
-        county = normalize((addr.county||"").replace(/ County$/i,""));
+        city=normalize(document.getElementById("manualCity").value);
+        county=normalize(document.getElementById("manualCounty").value);
+      }else{
+        const addr=await geocode(document.getElementById("address").value);
+        city=pickCity(addr);
+        county=normalize((addr.county||"").replace(/ County$/i,""));
       }
 
-      document.getElementById("detected").textContent =
+      document.getElementById("detected").textContent=
         `Detected: ${city}, ${county} County`;
 
       const work=document.getElementById("work").value;
@@ -294,21 +255,22 @@ function runCheck(manual=false){
         return showResult("yes","<strong>Permit required</strong><br>This county requires permits.");
 
       showResult("no","<strong>No permit required</strong><br>County not listed.");
-    } catch {
+    }catch{
       showResult("maybe","<strong>Unable to determine</strong><br>Please verify manually.");
     }
   })();
 }
 
 function showTab(tab){
-  document.getElementById("checker").style.display = tab==="checker"?"block":"none";
-  document.getElementById("instructions").style.display = tab==="instructions"?"block":"none";
+  document.getElementById("checker").style.display=tab==="checker"?"block":"none";
+  document.getElementById("instructions").style.display=tab==="instructions"?"block":"none";
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".tab")[tab==="checker"?0:1].classList.add("active");
 }
 
-function openRandy(){ window.open("https://www.randymajors.org/county-map","_blank"); }
-function openQPublic(){ window.open("https://qpublic.net","_blank"); }
+function openQPublic(){
+  window.open("https://qpublic.schneidercorp.com","_blank");
+}
 </script>
 
 </body>
