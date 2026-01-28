@@ -7,81 +7,40 @@
 
 <style>
 :root{
-  --bg:#0f172a;
-  --card:#111827;
-  --muted:#94a3b8;
-  --text:#e5e7eb;
-  --accent:#22c55e;
-  --warn:#f97316;
-  --danger:#ef4444;
-  --ok:#10b981;
+  --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;
+  --accent:#22c55e;--warn:#f97316;--danger:#ef4444;--ok:#10b981;
 }
 body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
 .container{max-width:960px;margin:0 auto;padding:16px;}
 .header-image{text-align:center;margin:24px 0 16px;}
-.header-image img{
-  max-width:100%;
-  height:auto;
-  border-radius:12px;
-}
-.card{
-  background:var(--card);
-  border-radius:12px;
-  padding:16px;
-  margin-bottom:16px;
-}
+.header-image img{max-width:100%;height:auto;border-radius:12px;}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;}
 label{display:block;margin-top:10px;font-size:.9rem;color:var(--muted);}
 input,select{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #374151;
-  background:#0b1220;
-  color:var(--text);
+  width:100%;padding:10px;border-radius:8px;
+  border:1px solid #374151;background:#0b1220;color:var(--text);
 }
-button{
-  padding:10px 14px;
-  border-radius:8px;
-  border:0;
-  font-weight:600;
-  cursor:pointer;
-}
+button{padding:10px 14px;border-radius:8px;border:0;font-weight:600;cursor:pointer;}
 .primary{background:var(--accent);color:#052e16;}
 .ghost{background:#0b1220;border:1px solid #374151;color:var(--text);}
 .row{display:grid;grid-template-columns:1fr;gap:12px;}
 @media(min-width:720px){.row{grid-template-columns:2fr 1fr;}}
 .result{margin-top:14px;padding:14px;border-radius:12px;}
-.yes{background:rgba(239,68,68,.15);}
-.no{background:rgba(16,185,129,.15);}
-.maybe{background:rgba(249,115,22,.15);}
+.yes{background:rgba(239,68,68,.18);}
+.no{background:rgba(16,185,129,.18);}
+.maybe{background:rgba(249,115,22,.18);}
 .tag{
-  display:inline-block;
-  margin-right:8px;
-  margin-top:6px;
-  padding:4px 8px;
-  border-radius:999px;
-  font-size:.75rem;
-  border:1px solid #374151;
-  color:var(--muted);
+  display:inline-block;margin-right:8px;margin-top:6px;
+  padding:4px 8px;border-radius:999px;font-size:.75rem;
+  border:1px solid #374151;color:var(--muted);
 }
 .tabs{display:flex;gap:8px;margin-bottom:12px;}
-.tab{
-  padding:8px 12px;
-  border-radius:8px;
-  border:1px solid #374151;
-  cursor:pointer;
-}
+.tab{padding:8px 12px;border-radius:8px;border:1px solid #374151;cursor:pointer;}
 .tab.active{background:#0b1220;}
-footer{
-  margin-top:24px;
-  font-size:.85rem;
-  color:var(--muted);
-}
+footer{margin-top:24px;font-size:.85rem;color:var(--muted);}
 a{color:#93c5fd;text-decoration:none;}
 a:hover{text-decoration:underline;}
 </style>
@@ -104,19 +63,14 @@ a:hover{text-decoration:underline;}
 <div id="checker">
 
 <div class="card">
-  <label>Property Address (Georgia)</label>
-  <input id="address" placeholder="875 Pickens Industrial Dr NE, Marietta, GA 30062">
+  <label>Property Address / City / ZIP (Georgia)</label>
+  <input id="address" placeholder="Any format: address, city, ZIP, or combination">
 
   <div class="row">
     <div>
       <label>Work Type</label>
       <select id="work">
-        <option value="helical">Helical Piers</option>
-        <option value="push">Push Piers</option>
-        <option value="wall">Wall Anchors</option>
-        <option value="intellijack">IntelliJacks</option>
-        <option value="beam">Supplemental Beams</option>
-        <option value="carbon">Carbon Fiber Strips</option>
+        <option value="structural">Structural Work (Piers, Beams, IntelliJacks)</option>
         <option value="slab">Slab Piers</option>
       </select>
     </div>
@@ -131,6 +85,11 @@ a:hover{text-decoration:underline;}
   </div>
 
   <div id="result" class="result maybe" style="display:none"></div>
+
+  <div id="audit" class="card" style="display:none;margin-top:12px">
+    <strong>Decision Details (Audit Trail)</strong>
+    <ul id="auditList" style="margin-top:8px"></ul>
+  </div>
 </div>
 
 <div class="card">
@@ -138,13 +97,10 @@ a:hover{text-decoration:underline;}
   <small style="display:block;margin-top:4px">
     Use only after verifying jurisdiction via qPublic.
   </small>
-
-  <label>City (or type Unincorporated)</label>
-  <input id="manualCity" placeholder="Marietta or Unincorporated">
-
+  <label>City (or Unincorporated)</label>
+  <input id="manualCity">
   <label>County</label>
-  <input id="manualCounty" placeholder="Cobb">
-
+  <input id="manualCounty">
   <button class="ghost" style="margin-top:10px" onclick="runCheck(true)">
     Apply Manual Override
   </button>
@@ -162,13 +118,40 @@ a:hover{text-decoration:underline;}
 <div class="card">
 <h3>How to Use This Tool</h3>
 <ol>
-<li>Enter the full Georgia property address.</li>
-<li>Select the scope of work.</li>
+<li>Enter any address format (full address, city, ZIP, multiline text).</li>
+<li>Select the type of work.</li>
 <li>Click <strong>Check Permit</strong>.</li>
-<li>Review detected city and county.</li>
-<li>Verify jurisdiction using qPublic.</li>
-<li>Apply manual override only if verified.</li>
+<li>Review the detected city and county.</li>
+<li>Review the confidence level and audit trail.</li>
+<li>Verify jurisdiction in qPublic before proceeding.</li>
 </ol>
+</div>
+
+<div class="card">
+<h3>Geocoder Confidence Levels</h3>
+<ul>
+<li><strong>High:</strong> City + county resolved with strong match.</li>
+<li><strong>Medium:</strong> Partial jurisdiction resolved.</li>
+<li><strong>Low:</strong> ZIP-only or ambiguous match.</li>
+</ul>
+<p>
+Confidence is derived from OpenStreetMap match importance and resolution depth.
+</p>
+</div>
+
+<div class="card">
+<h3>Decision Audit Trail</h3>
+<p>
+The audit trail explains:
+</p>
+<ul>
+<li>How the location was resolved</li>
+<li>Which permit rule applied</li>
+<li>Why the result was returned</li>
+</ul>
+<p>
+This information supports internal review and inspector decision-making.
+</p>
 </div>
 
 <div class="card">
@@ -186,15 +169,11 @@ a:hover{text-decoration:underline;}
 <strong>Ruleset:</strong> 1-22-2026<br><br>
 
 <div style="display:flex;gap:12px;align-items:center;">
-  <img src="matthew-urbanski.PNG"
-       alt="Matthew Urbanski, Certified Field Inspector"
-       style="height:64px;border-radius:8px;">
+  <img src="matthew-urbanski.PNG" style="height:64px;border-radius:8px;">
   <div>
     <strong>Tool created by:</strong><br>
     Matthew Urbanski, CFI<br>
-    <a href="mailto:Matthew.Urbanski@AquaGuard.net">
-      Matthew.Urbanski@AquaGuard.net
-    </a><br>
+    <a href="mailto:Matthew.Urbanski@AquaGuard.net">Matthew.Urbanski@AquaGuard.net</a><br>
     <a href="tel:14705681681">470-568-1681</a>
   </div>
 </div>
@@ -212,54 +191,103 @@ Guidance only. Jurisdiction must always be verified before contract execution.
 </div>
 
 <script>
-function normalize(s){
-  return s ? s.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()) : "";
-}
-function pickCity(addr){
-  const keys=["city","town","village","municipality","hamlet","locality","suburb"];
-  for(const k of keys){ if(addr[k]) return normalize(addr[k]); }
-  return "Unincorporated";
-}
+const RULES={
+  permitCounties:["Cobb","DeKalb","Fulton","Gwinnett","Cherokee","Butts"],
+  cobbExceptions:["Kennesaw","Acworth","Mableton","Powder Springs","Unincorporated"],
+  dekalbExceptions:["Dunwoody"],
+  alwaysPermitCities:["Atlanta","Stone Mountain"]
+};
+
+function norm(s){return s?s.trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase()):"";}
+
 async function geocode(q){
   const res=await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(q)}`
+    "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q="
+    +encodeURIComponent(q)
   );
   const data=await res.json();
-  if(!data[0]) throw "No result";
-  return data[0].address;
+  if(!data[0]) return null;
+  return {
+    address:data[0].address||{},
+    importance:data[0].importance||0,
+    class:data[0].class,
+    type:data[0].type
+  };
 }
-function showResult(type,html){
+
+function geocodeConfidence(geo,city,county){
+  if(city&&county&&geo.importance>=0.4) return "High";
+  if((city||county)&&geo.importance>=0.2) return "Medium";
+  return "Low";
+}
+
+function showResult(status,msg){
   const el=document.getElementById("result");
-  el.className="result "+type;
-  el.innerHTML=html;
+  el.className="result "+(status==="YES"?"yes":status==="NO"?"no":"maybe");
+  el.innerHTML=`<strong>${status==="YES"?"Permit Required":status==="NO"?"No Permit Required":"Check / Try"}</strong><br>${msg}`;
   el.style.display="block";
 }
-function runCheck(manual=false){
-  document.getElementById("mode").textContent=manual?"Mode: Manual Override":"Mode: Auto";
-  (async()=>{
-    try{
-      let city,county;
-      if(manual){
-        city=normalize(document.getElementById("manualCity").value);
-        county=normalize(document.getElementById("manualCounty").value);
-      }else{
-        const addr=await geocode(document.getElementById("address").value);
-        city=pickCity(addr);
-        county=normalize((addr.county||"").replace(/ County$/i,""));
-      }
-      document.getElementById("detected").textContent=`Detected: ${city}, ${county} County`;
-      showResult("yes","<strong>Result generated.</strong><br>Verify via qPublic before proceeding.");
-    }catch{
-      showResult("maybe","<strong>Unable to determine.</strong><br>Please verify manually.");
+
+async function runCheck(manual=false){
+  document.getElementById("mode").textContent=manual?"Mode: Manual":"Mode: Auto";
+  let city="",county="",audit=[],confidence="Low";
+
+  if(manual){
+    city=norm(document.getElementById("manualCity").value)||"Unincorporated";
+    county=norm(document.getElementById("manualCounty").value);
+    audit.push("Manual override applied.");
+  }else{
+    const geo=await geocode(document.getElementById("address").value);
+    if(!geo){
+      showResult("MAYBE","No geocoder match. Verify manually.");
+      return;
     }
-  })();
+    const addr=geo.address;
+    city=norm(addr.city||addr.town||addr.village||"Unincorporated");
+    county=norm((addr.county||"").replace(/ County$/,""));
+    confidence=geocodeConfidence(geo,city,county);
+    audit.push(`Geocoder type: ${geo.class} (${geo.type})`);
+    audit.push(`Match importance: ${geo.importance}`);
+    audit.push(`Derived confidence: ${confidence}`);
+  }
+
+  document.getElementById("detected").textContent=
+    `Detected: ${city}, ${county||"Unknown"} County`;
+
+  const work=document.getElementById("work").value;
+  let decision,reason;
+
+  if(work==="slab"){
+    decision="NO";reason="Slab piers are exempt statewide.";
+  }else if(RULES.alwaysPermitCities.includes(city)){
+    decision="YES";reason=`${city} always requires permits.`;
+  }else if(county==="Cobb"&&RULES.cobbExceptions.includes(city)){
+    decision="NO";reason=`${city} is a Cobb County exception.`;
+  }else if(county==="DeKalb"&&RULES.dekalbExceptions.includes(city)){
+    decision="NO";reason="Dunwoody is a DeKalb exception.";
+  }else if(RULES.permitCounties.includes(county)){
+    decision="YES";reason=`${county} County requires permits.`;
+  }else{
+    decision="MAYBE";reason="Jurisdiction unclear. Attempt permit.";
+  }
+
+  audit.push(`Rule applied: ${reason}`);
+
+  showResult(decision,reason);
+
+  const auditBox=document.getElementById("audit");
+  const auditList=document.getElementById("auditList");
+  auditList.innerHTML=audit.map(x=>`<li>${x}</li>`).join("");
+  auditBox.style.display="block";
 }
-function showTab(tab){
-  document.getElementById("checker").style.display=tab==="checker"?"block":"none";
-  document.getElementById("instructions").style.display=tab==="instructions"?"block":"none";
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  document.querySelectorAll(".tab")[tab==="checker"?0:1].classList.add("active");
+
+function showTab(t){
+  document.getElementById("checker").style.display=t==="checker"?"block":"none";
+  document.getElementById("instructions").style.display=t==="instructions"?"block":"none";
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab")[t==="checker"?0:1].classList.add("active");
 }
+
 function openQPublic(){
   window.open("https://qpublic.schneidercorp.com","_blank");
 }
