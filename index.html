@@ -3,58 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <title>AquaGuard Permit Checking Tool</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{
-  --bg:#0f172a;
-  --card:#111827;
+  --bg:#0b1220;
+  --panel:#111827;
+  --border:#1f2937;
   --text:#e5e7eb;
   --muted:#94a3b8;
-  --ok:#22c55e;
-  --warn:#f97316;
-  --bad:#ef4444;
+  --green:#22c55e;
+  --orange:#f97316;
+  --red:#ef4444;
 }
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,Segoe UI,Roboto;
   background:var(--bg);
   color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
-.container{max-width:900px;margin:auto;padding:16px}
-.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:16px}
-input,select,textarea,button{
-  width:100%;padding:10px;border-radius:10px;
-  border:1px solid #374151;background:#020617;color:var(--text)
+.container{
+  max-width:920px;
+  margin:auto;
+  padding:16px;
 }
-button{cursor:pointer;font-weight:600}
-.primary{background:var(--ok);color:#052e16;border:none}
-.tabbar{display:flex;gap:10px;margin:10px 0}
-.tab{flex:1;text-align:center;padding:10px;border-radius:10px;border:1px solid #374151;cursor:pointer}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+img.logo{
+  display:block;
+  margin:0 auto 12px;
+  max-width:280px;
+}
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+.tab{
+  flex:1;
+  padding:10px;
+  text-align:center;
+  border:1px solid var(--border);
+  border-radius:10px;
+  cursor:pointer;
+}
 .tab.active{background:#020617}
 .hidden{display:none}
-.tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.8rem;border:1px solid #374151;margin-right:6px}
-.result{margin-top:12px;padding:14px;border-radius:12px}
+label{display:block;margin:10px 0 4px;color:var(--muted)}
+textarea,input,select,button{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#020617;
+  color:var(--text);
+}
+button.primary{
+  background:var(--green);
+  color:#052e16;
+  font-weight:700;
+  border:none;
+  margin-top:10px;
+}
+.tag{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:.8rem;
+  margin-right:6px;
+}
+.result{
+  margin-top:12px;
+  padding:14px;
+  border-radius:12px;
+}
 .result.ok{background:rgba(34,197,94,.15)}
 .result.warn{background:rgba(249,115,22,.15)}
 .result.bad{background:rgba(239,68,68,.15)}
-.confbar{height:10px;border-radius:999px;background:#1f2937;overflow:hidden}
+.confbar{
+  height:10px;
+  background:#1f2937;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:6px;
+}
 .confbar > div{height:100%;width:0;transition:.4s}
 small{color:var(--muted)}
-img{max-width:100%}
+hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- Banner -->
-<img src="aquaguard-logo.png" alt="AquaGuard Logo" style="display:block;margin:auto;max-width:260px">
+<!-- LOGO (case-correct) -->
+<img src="aquaguard-logo.PNG" class="logo" alt="AquaGuard Foundation Solutions">
 
-<div class="tabbar">
+<div class="tabs">
   <div class="tab active" onclick="showTab('checker')">Checker</div>
   <div class="tab" onclick="showTab('instructions')">Instructions</div>
 </div>
@@ -75,15 +130,15 @@ placeholder="706 Springs Street Smyrna GA 30080"></textarea>
   <option value="other_structural">Other Structural Work</option>
 </select>
 
-<button class="primary" onclick="checkPermit()">Check Permit</button>
+<button class="primary" onclick="runCheck()">Check Permit</button>
 
 <div style="margin-top:10px">
   <span class="tag" id="detected">Detected: —</span>
   <span class="tag" id="confidenceTag">Confidence: —</span>
 </div>
 
-<div style="margin-top:8px">
-  <div class="confbar"><div id="confidenceBar"></div></div>
+<div class="confbar">
+  <div id="confidenceBar"></div>
 </div>
 
 <div id="result" class="result hidden"></div>
@@ -103,21 +158,25 @@ placeholder="706 Springs Street Smyrna GA 30080"></textarea>
 
 <button onclick="exportPDF()">Export PDF</button>
 
-<div id="audit" style="margin-top:12px"></div>
+<div id="audit"></div>
+
 </div>
 
 <!-- INSTRUCTIONS -->
 <div id="instructions" class="card hidden">
-<h3>How to Use This Tool</h3>
+<h3>How This Tool Works</h3>
 <ul>
-<li>Paste a full address, city, ZIP, or any combination.</li>
-<li>The tool automatically resolves city and county.</li>
-<li>Structural services generally require permits.</li>
-<li>Slab piers are exempt statewide.</li>
-<li>Confidence reflects data quality, not legality.</li>
-<li>Always verify parcels in qPublic.</li>
+  <li>Paste a full address, city, ZIP, or any combination.</li>
+  <li>City detection includes suburb, locality, and neighborhood.</li>
+  <li>Structural services typically require permits.</li>
+  <li>Slab piers are exempt statewide per AquaGuard policy.</li>
+  <li>Confidence reflects data strength, not legality.</li>
+  <li>Always verify parcel data in qPublic.</li>
 </ul>
 <p><strong>Ruleset:</strong> AquaGuard Permit Instructions (1-22-2026)</p>
+<a href="Permit_Instructions_2.pdf" target="_blank">
+View official permit instructions (PDF)
+</a>
 </div>
 
 </div>
@@ -133,18 +192,23 @@ function showTab(id){
 const PERMIT_COUNTIES=["Cobb","Cherokee","Fulton","DeKalb","Gwinnett","Butts"];
 
 const ZIP_TO_COUNTY={
-  "30080":"Cobb","30115":"Cherokee","30339":"Fulton"
+  "30080":"Cobb",
+  "30115":"Cherokee",
+  "30339":"Fulton"
 };
 
-let auditData={};
-
 function normalize(s){
-  return s? s.replace(/ County$/i,"").trim(): "";
+  return s ? s.replace(/ County$/i,"").trim() : "";
 }
 
 function extractCity(addr){
-  const keys=["city","town","municipality","suburb","village","locality","neighbourhood","hamlet"];
-  for(const k of keys){ if(addr[k]) return normalize(addr[k]); }
+  const keys=[
+    "city","town","municipality","suburb",
+    "village","locality","neighbourhood","hamlet"
+  ];
+  for(const k of keys){
+    if(addr[k]) return normalize(addr[k]);
+  }
   return "";
 }
 
@@ -155,13 +219,16 @@ async function geocode(q){
   return j[0];
 }
 
-async function checkPermit(){
-  const address=document.getElementById("address").value.replace(/\s+/g," ").trim();
+let auditData={};
+
+async function runCheck(){
+  const raw=document.getElementById("address").value.replace(/\s+/g," ").trim();
   const service=document.getElementById("service").value;
-  let city="",county="",confidence="Low",score=30,reason=[];
+
+  let city="",county="",confidence="Low",score=30;
 
   try{
-    const geo=await geocode(address);
+    const geo=await geocode(raw);
     const a=geo.address||{};
     city=extractCity(a);
     county=normalize(a.county);
@@ -170,29 +237,37 @@ async function checkPermit(){
     if(!county && zip && ZIP_TO_COUNTY[zip]){
       county=ZIP_TO_COUNTY[zip];
       confidence="Medium";score=60;
-      reason.push("County derived from ZIP fallback.");
     }
-    if(county && city){
+    if(city && county){
       confidence="High";score=90;
     }
 
+    let decision="",msg="";
     if(service==="slab_piers"){
-      showResult("ok","No Permit Required","Slab piers are exempt statewide.");
+      decision="No Permit Required";
+      msg="Slab piers are exempt statewide.";
+      showResult("ok",decision,msg);
     }else if(PERMIT_COUNTIES.includes(county)){
-      showResult("bad","Permit Required",`${county} County requires permits.`);
+      decision="Permit Required";
+      msg=`${county} County requires permits for this service.`;
+      showResult("bad",decision,msg);
     }else{
-      showResult("warn","Check / Try","Jurisdiction unclear.");
+      decision="Check / Try";
+      msg="Jurisdiction unclear. Verify via qPublic.";
+      showResult("warn",decision,msg);
     }
 
-    document.getElementById("detected").textContent=`Detected: ${city||"Unknown"}, ${county||"Unknown County"}`;
-    document.getElementById("confidenceTag").textContent=`Confidence: ${confidence}`;
+    document.getElementById("detected").textContent=
+      `Detected: ${city||"Unknown"}, ${county||"Unknown County"}`;
+    document.getElementById("confidenceTag").textContent=
+      `Confidence: ${confidence}`;
     updateBar(score,confidence);
 
-    auditData={address,city,county,confidence,service,reason,time:new Date().toLocaleString()};
+    auditData={address:raw,city,county,confidence,service,decision,time:new Date().toLocaleString()};
     document.getElementById("audit").innerHTML=
       `<small><pre>${JSON.stringify(auditData,null,2)}</pre></small>`;
 
-  }catch(e){
+  }catch{
     showResult("warn","Check / Try","No geocoder match.");
   }
 }
@@ -200,7 +275,10 @@ async function checkPermit(){
 function updateBar(score,conf){
   const bar=document.getElementById("confidenceBar");
   bar.style.width=score+"%";
-  bar.style.background= conf==="High"?"#22c55e":conf==="Medium"?"#f97316":"#ef4444";
+  bar.style.background=
+    conf==="High"? "var(--green)" :
+    conf==="Medium"? "var(--orange)" :
+    "var(--red)";
 }
 
 function showResult(type,title,msg){
@@ -215,16 +293,20 @@ function openQPublic(){
 }
 
 function exportPDF(){
-  if(!document.getElementById("inspName").value||!document.getElementById("inspInit").value){
+  const name=document.getElementById("inspName").value;
+  const init=document.getElementById("inspInit").value;
+  if(!name||!init){
     alert("Inspector name and initials required.");
     return;
   }
   const {jsPDF}=window.jspdf;
   const d=new jsPDF();
   d.text("AquaGuard Permit Audit",10,10);
-  d.text(JSON.stringify(auditData,null,2),10,20);
+  d.text(`Inspector: ${name} (${init})`,10,20);
+  d.text(JSON.stringify(auditData,null,2),10,30);
   d.save("permit_audit.pdf");
 }
 </script>
+
 </body>
 </html>
